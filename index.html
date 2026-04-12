@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>StardropHost</title>
+  <link rel="icon" type="image/png" href="/favicon.png">
+  <meta name="theme-color" content="#7c3aed">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="StardropHost">
+  <link rel="apple-touch-icon" href="/favicon.png">
+  <script>
+    (() => {
+      const saved = localStorage.getItem('panel_theme');
+      const theme = saved === 'light' || saved === 'dark'
+        ? saved
+        : (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    html { background: #12101a; }
+    html[data-theme='light'] { background: #f3f0fb; }
+
+    #app-loader {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 14px;
+      background: inherit;
+      z-index: 9999;
+      transition: opacity 0.2s;
+    }
+    #app-loader.hidden { opacity: 0; pointer-events: none; }
+
+    .app-loader-dot {
+      width: 36px; height: 36px;
+      border: 3px solid rgba(167,139,250,0.2);
+      border-top-color: #a78bfa;
+      border-radius: 50%;
+      animation: loader-spin 0.9s linear infinite;
+    }
+    html[data-theme='light'] .app-loader-dot {
+      border-color: rgba(124,58,237,0.2);
+      border-top-color: #7c3aed;
+    }
+    @keyframes loader-spin { to { transform: rotate(360deg); } }
+
+    .app-loader-text {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 14px;
+      color: #9e93c8;
+    }
+    html[data-theme='light'] .app-loader-text { color: #5b4d80; }
+    
+    .demo-gif-container {
+      margin-top: 16px;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: var(--bg-primary);
+    }
+    
+    .demo-gif-container img {
+      width: 100%;
+      display: block;
+      height: auto;
+    }
+
+    .project-links {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    /* Demo console: remove whitespace gaps between log lines */
+    #demo-term-output > div { margin: 0 !important; display: block; }
+    #demo-log-output .log-line { margin: 0 !important; }
+
+    /* ── Device Showcase ──────────────────────────────────────── */
+    .device-showcase-wrap {
+      position: relative;
+      max-width: 740px;
+      margin: 0 auto;
+      padding-bottom: 80px;
+    }
+    /* Desktop browser frame */
+    .device-desktop {
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid rgba(167,139,250,0.18);
+      box-shadow: 0 32px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(255,255,255,0.04), 0 0 60px rgba(124,58,237,0.08);
+    }
+    .device-chrome {
+      height: 38px;
+      background: #1e1a2e;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 14px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      flex-shrink: 0;
+    }
+    .device-chrome-dots { display: flex; gap: 4px; }
+    .device-chrome-dots span {
+      width: 18px; height: 16px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-family: monospace; color: rgba(255,255,255,0.35);
+      line-height: 1;
+    }
+    .device-chrome-url {
+      flex: 1;
+      max-width: 260px;
+      margin: 0 auto;
+      height: 22px;
+      background: rgba(0,0,0,0.3);
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      color: #7c6fa8;
+      font-family: monospace;
+      letter-spacing: .02em;
+    }
+    /* Desktop screen area */
+    .device-screen {
+      height: 370px;
+      background: #12101a;
+      display: flex;
+      overflow: hidden;
+    }
+    /* Mini sidebar */
+    .ds-sidebar {
+      width: 54px;
+      background: #1c1828;
+      border-right: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 10px 0 8px;
+      gap: 3px;
+      flex-shrink: 0;
+    }
+    .ds-logo {
+      width: 30px; height: 30px;
+      border-radius: 8px;
+      background: rgba(167,139,250,0.2);
+      margin-bottom: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .ds-logo svg { width: 16px; height: 16px; color: #a78bfa; }
+    .ds-nav {
+      width: 36px; height: 26px;
+      border-radius: 7px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .ds-nav.active { background: rgba(167,139,250,0.15); }
+    .ds-nav svg { width: 14px; height: 14px; color: rgba(255,255,255,0.2); }
+    .ds-nav.active svg { color: #a78bfa; }
+    /* Mini content */
+    .ds-content {
+      flex: 1;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      overflow: hidden;
+      min-width: 0;
+    }
+    .ds-topbar {
+      height: 28px;
+      background: #1c1828;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      flex-shrink: 0;
+    }
+    .ds-topbar-title { width: 72px; height: 8px; background: rgba(255,255,255,0.22); border-radius: 3px; }
+    .ds-badge { height: 16px; width: 58px; background: rgba(34,197,94,0.14); border: 1px solid rgba(34,197,94,0.25); border-radius: 20px; display: flex; align-items: center; justify-content: center; gap: 4px; }
+    .ds-badge-dot { width: 5px; height: 5px; border-radius: 50%; background: #22c55e; }
+    .ds-badge-text { width: 28px; height: 5px; background: rgba(34,197,94,0.5); border-radius: 2px; }
+    .ds-stat-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; flex-shrink: 0; }
+    .ds-stat {
+      background: #1c1828;
+      border-radius: 7px;
+      padding: 8px 8px 7px;
+      border: 1px solid rgba(255,255,255,0.05);
+    }
+    .ds-stat-icon { width: 18px; height: 18px; border-radius: 4px; margin-bottom: 6px; }
+    .ds-stat-lbl { width: 38px; height: 5px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-bottom: 4px; }
+    .ds-stat-val { height: 8px; background: rgba(255,255,255,0.22); border-radius: 3px; }
+    .ds-row { display: flex; gap: 8px; flex: 1; min-height: 0; }
+    .ds-card {
+      background: #1c1828;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.05);
+      padding: 10px;
+      overflow: hidden;
+    }
+    .ds-card-title { width: 80px; height: 7px; background: rgba(255,255,255,0.22); border-radius: 3px; margin-bottom: 10px; }
+    .ds-bar-row { margin-bottom: 8px; }
+    .ds-bar-hdr { display: flex; justify-content: space-between; margin-bottom: 3px; }
+    .ds-bar-lbl { width: 22px; height: 5px; background: rgba(255,255,255,0.18); border-radius: 2px; }
+    .ds-bar-val { width: 18px; height: 5px; background: rgba(167,139,250,0.4); border-radius: 2px; }
+    .ds-bar { height: 5px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+    .ds-bar-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg,#7c3aed,#a78bfa); }
+    .ds-line { height: 5px; background: rgba(255,255,255,0.08); border-radius: 2px; margin-bottom: 5px; }
+    .ds-detail { display: flex; align-items: center; gap: 5px; margin-bottom: 6px; }
+    .ds-detail-lbl { width: 40px; height: 5px; background: rgba(255,255,255,0.1); border-radius: 2px; }
+    .ds-detail-val { width: 80px; height: 5px; background: rgba(255,255,255,0.2); border-radius: 2px; }
+    .ds-btn-row { display: flex; gap: 5px; margin-top: 4px; }
+    .ds-btn { height: 17px; border-radius: 4px; border: 1px solid; }
+    .ds-btn-r { width: 52px; background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.28); }
+    .ds-btn-y { width: 40px; background: rgba(234,179,8,0.1); border-color: rgba(234,179,8,0.25); }
+    /* Mobile phone frame */
+    .device-mobile {
+      position: absolute;
+      bottom: 0;
+      right: 0px;
+      width: 162px;
+      border-radius: 38px;
+      border: 5px solid #2a2440;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.65), 0 0 0 1px rgba(167,139,250,0.15), inset 0 0 0 1px rgba(255,255,255,0.06);
+      overflow: hidden;
+      transform: rotate(2.5deg);
+      background: #12101a;
+    }
+    .dm-screen {
+      background: #12101a;
+      padding: 0 7px 7px;
+    }
+    .dm-statusbar {
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 0 10px;
+      margin-bottom: 6px;
+    }
+    .dm-statusbar::before {
+      content: '';
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px; height: 5px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 3px;
+    }
+    .dm-statusbar::after {
+      content: '';
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 24px; height: 5px;
+      background: rgba(255,255,255,0.12);
+      border-radius: 3px;
+    }
+    .dm-punchhole {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #0a0812;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .dm-gesture {
+      height: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 6px;
+    }
+    .dm-gesture::after {
+      content: '';
+      width: 44px; height: 3px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 2px;
+    }
+    .dm-topbar { height: 22px; background: #1c1828; border-radius: 5px; margin-bottom: 6px; display: flex; align-items: center; padding: 0 8px; justify-content: space-between; }
+    .dm-topbar-title { width: 50px; height: 6px; background: rgba(255,255,255,0.2); border-radius: 2px; }
+    .dm-topbar-badge { width: 36px; height: 12px; background: rgba(34,197,94,0.15); border-radius: 10px; border: 1px solid rgba(34,197,94,0.25); }
+    .dm-stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 6px; }
+    .dm-stat { background: #1c1828; border-radius: 6px; padding: 7px; border: 1px solid rgba(255,255,255,0.05); }
+    .dm-stat-icon { width: 14px; height: 14px; border-radius: 3px; margin-bottom: 5px; }
+    .dm-stat-lbl { width: 28px; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; margin-bottom: 3px; }
+    .dm-stat-val { height: 6px; background: rgba(255,255,255,0.22); border-radius: 2px; }
+    .dm-card { background: #1c1828; border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); padding: 7px; }
+    .dm-card-title { width: 60px; height: 6px; background: rgba(255,255,255,0.22); border-radius: 2px; margin-bottom: 7px; }
+    .dm-status-row { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
+    .dm-dot { width: 6px; height: 6px; border-radius: 50%; background: #22c55e; flex-shrink: 0; }
+    .dm-status-text { width: 32px; height: 5px; background: rgba(34,197,94,0.4); border-radius: 2px; }
+    .dm-btn-row { display: flex; gap: 4px; }
+    .dm-btn { height: 15px; border-radius: 3px; border: 1px solid; }
+    .dm-btn-r { width: 44px; background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.28); }
+    .dm-btn-y { width: 34px; background: rgba(234,179,8,0.1); border-color: rgba(234,179,8,0.25); }
+  </style>
+</head>
+<body>
+
+  <!-- SVG Sprite -->
+  <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+    <symbol id="icon-logo" viewBox="0 0 100 100"><image href="/favicon.png" x="0" y="0" width="100" height="100"/></symbol>
+    <symbol id="icon-dashboard" viewBox="0 0 24 24"><path fill="currentColor" d="M13.5 8.183V4.817q0-.357.234-.587t.58-.23h4.88q.347 0 .576.23t.23.587v3.366q0 .358-.234.587q-.234.23-.58.23h-4.88q-.346 0-.576-.23t-.23-.587M4 11.2V4.8q0-.34.234-.57t.58-.23h4.88q.347 0 .576.23t.23.57v6.4q0 .34-.234.57t-.58.23h-4.88q-.346 0-.576-.23T4 11.2m9.5 8v-6.4q0-.34.234-.57t.58-.23h4.88q.347 0 .576.23t.23.57v6.4q0 .34-.234.57t-.58.23h-4.88q-.346 0-.576-.23t-.23-.57M4 19.183v-3.366q0-.357.234-.587t.58-.23h4.88q.347 0 .576.23t.23.587v3.366q0 .358-.234.587q-.234.23-.58.23h-4.88q-.346 0-.576-.23T4 19.183M5 11h4.5V5H5zm9.5 8H19v-6h-4.5zm0-11H19V5h-4.5zM5 19h4.5v-3H5zm4.5-3"/></symbol>
+    <symbol id="icon-terminal" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 6.5h15v11h-15Z"/><path d="m8 10 2.5 2-2.5 2"/><path d="M12.5 15.5h3.5"/></g></symbol>
+    <symbol id="icon-players" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11a2.7 2.7 0 1 0 0-5.4A2.7 2.7 0 0 0 9 11Z"/><path d="M16.5 10a2.2 2.2 0 1 0 0-4.4 2.2 2.2 0 0 0 0 4.4Z"/><path d="M4.8 18.5c.6-2.6 2.5-4 4.7-4s4.2 1.4 4.7 4"/><path d="M13.8 18.5c.5-1.9 1.9-3 3.8-3 1.3 0 2.4.5 3.1 1.6"/></g></symbol>
+    <symbol id="icon-saves" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 5.5h10l2 2V19H6Z"/><path d="M9 5.5v4h5v-4"/><path d="M9 19v-5h6v5"/></g></symbol>
+    <symbol id="icon-config" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-linecap="round" stroke-width="1.5"><path d="M8.73 21.499c1.293-2.223 4.252-2.485 5.937-.786c.377.38.566.57.733.592s1.215-.578 1.587-.792c.38-.217 1.432-.82 1.498-.979c.066-.157-.003-.427-.142-.965c-.503-1.957.718-4.017 2.668-4.548c.522-.142.783-.213.886-.349S22 12.341 22 11.904s0-1.633-.103-1.769s-.364-.207-.886-.349c-1.95-.531-3.172-2.59-2.67-4.548c.14-.538.208-.807.142-.965s-1.118-.761-1.497-.979c-.372-.213-1.42-.815-1.588-.792c-.167.023-.355.213-.732.592a3.775 3.775 0 0 1-5.333 0c-.377-.38-.566-.57-.733-.592s-1.215.579-1.587.792c-.38.218-1.432.821-1.498.979s.003.427.142.965c.503 1.957-.718 4.017-2.668 4.548c-.522.142-.783.213-.886.35C2 10.27 2 11.465 2 11.903s0 1.632.103 1.768s.364.207.886.35q.009 0 .018.004"/><path d="M2.489 18.183c1.08-1.08 4.752-4.714 5.112-5.134c.38-.444.072-1.044.256-2.903c.088-.9.282-1.573.836-2.075c.66-.624 1.2-.624 3.06-.666c1.62.042 1.812-.138 1.98.282c.12.3-.24.48-.672.96c-.96.96-1.524 1.44-1.578 1.74c-.39 1.319 1.146 2.098 1.986 1.258c.318-.317 1.788-1.799 1.932-1.919c.108-.096.366-.091.492.06c.108.106.12.12.108.6c-.011.444-.006 1.082-.005 1.74c.002.851-.043 1.799-.403 2.278c-.72 1.08-1.92 1.14-3 1.188c-1.02.06-1.86-.048-2.124.144c-.216.108-1.356 1.307-2.736 2.687l-2.46 2.459c-2.04 1.62-4.284-.9-2.784-2.7Z"/></g></symbol>
+    <symbol id="icon-mods" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5.5c0-1 1-1.8 2.2-1.8S13.5 4.5 13.5 5.5c0 .7-.3 1.2-.8 1.6h2.1c1.8 0 3.2 1.4 3.2 3.2v1.6h-2.4c-1 0-1.8.8-1.8 1.8s.8 1.8 1.8 1.8H18V18c0 1.8-1.4 3.2-3.2 3.2h-2.1c.5-.4.8-.9.8-1.6 0-1-.9-1.8-2.3-1.8S9 18.6 9 19.6c0 .7.3 1.2.8 1.6H7.7A3.2 3.2 0 0 1 4.5 18v-2.5H7c1 0 1.8-.8 1.8-1.8S8 11.9 7 11.9H4.5v-1.6c0-1.8 1.4-3.2 3.2-3.2h2.1c-.5-.4-.8-.9-.8-1.6Z"/></g></symbol>
+    <symbol id="icon-sprout" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19.5v-7"/><path d="M12 12.5c0-3.2 2.2-5.6 5.5-6-.2 3.6-2.3 5.9-5.5 6Z"/><path d="M12 14c0-2.6-1.8-4.5-4.8-4.9.2 2.9 2 4.7 4.8 4.9Z"/></g></symbol>
+    <symbol id="icon-globe" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M3.8 12h16.4"/><path d="M12 3.5c2 2 3.1 5 3.1 8.5S14 18.5 12 20.5c-2-2-3.1-5-3.1-8.5S10 5.5 12 3.5Z"/></g></symbol>
+    <symbol id="icon-chat" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></g></symbol>
+    <symbol id="icon-github" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"/><g fill="none"><rect width="256" height="256" fill="#242938" rx="60"/><path fill="#fff" d="M128.001 30C72.779 30 28 74.77 28 130.001c0 44.183 28.653 81.667 68.387 94.89c4.997.926 6.832-2.169 6.832-4.81c0-2.385-.093-10.262-.136-18.618c-27.82 6.049-33.69-11.799-33.69-11.799c-4.55-11.559-11.104-14.632-11.104-14.632c-9.073-6.207.684-6.079.684-6.079c10.042.705 15.33 10.305 15.33 10.305c8.919 15.288 23.394 10.868 29.1 8.313c.898-6.464 3.489-10.875 6.349-13.372c-22.211-2.529-45.56-11.104-45.56-49.421c0-10.918 3.906-19.839 10.303-26.842c-1.039-2.519-4.462-12.69.968-26.464c0 0 8.398-2.687 27.508 10.25c7.977-2.215 16.531-3.326 25.03-3.364c8.498.038 17.06 1.149 25.051 3.365c19.087-12.939 27.473-10.25 27.473-10.25c5.443 13.773 2.019 23.945.98 26.463c6.412 7.003 10.292 15.924 10.292 26.842c0 38.409-23.394 46.866-45.662 49.341c3.587 3.104 6.783 9.189 6.783 18.519c0 13.38-.116 24.149-.116 27.443c0 2.661 1.8 5.779 6.869 4.797C199.383 211.64 228 174.169 228 130.001C228 74.771 183.227 30 128.001 30"/></g></symbol>
+    <symbol id="icon-theme-light" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2"/><path d="M12 19.3v2.2"/><path d="m4.9 4.9 1.6 1.6"/><path d="m17.5 17.5 1.6 1.6"/><path d="M2.5 12h2.2"/><path d="M19.3 12h2.2"/><path d="m4.9 19.1 1.6-1.6"/><path d="m17.5 6.5 1.6-1.6"/></g></symbol>
+    <symbol id="icon-theme-dark" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.5 14.5a6.8 6.8 0 1 1-9-9 7.6 7.6 0 0 0 9 9Z"/></g></symbol>
+    <symbol id="icon-menu" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 7h15"/><path d="M4.5 12h15"/><path d="M4.5 17h15"/></g></symbol>
+    <symbol id="icon-chevron-left" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></g></symbol>
+    <symbol id="icon-chevron-down" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></g></symbol>
+    <symbol id="icon-loader" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5a7.5 7.5 0 1 0 7 4.8"/><path d="M18 4.5h1.5V8"/></g></symbol>
+    <symbol id="icon-clock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v5l3 1.8"/></g></symbol>
+    <symbol id="icon-calendar" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 7.5h13v11h-13Z"/><path d="M8 4.5v3"/><path d="M16 4.5v3"/><path d="M5.5 10.5h13"/><path d="M9 14h2"/></g></symbol>
+    <symbol id="icon-refresh" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.5 9.5a7 7 0 0 0-11.7-2"/><path d="M6.8 3.8v4.3h4.4"/><path d="M5.5 14.5a7 7 0 0 0 11.8 2"/><path d="M17.2 20.2v-4.3h-4.4"/></g></symbol>
+    <symbol id="icon-download" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5.5v9"/><path d="m8.5 11.5 3.5 3.5 3.5-3.5"/><path d="M5 18.5h14"/></g></symbol>
+    <symbol id="icon-trash" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7.5h11"/><path d="M9.5 7.5V5.3h5V7.5"/><path d="M8 7.5 9 18.5h6l1-11"/></g></symbol>
+    <symbol id="icon-package" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 4.5 7 3.5v8L12 19.5 5 16V8Z"/><path d="M12 4.5 5 8l7 3.5L19 8"/><path d="M12 11.5v8"/></g></symbol>
+    <symbol id="icon-screen" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 5.5h15v11h-15Z"/><path d="M9 19.5h6"/><path d="M12 16.5v3"/></g></symbol>
+    <symbol id="icon-lock" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></g></symbol>
+    <symbol id="icon-copy" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></g></symbol>
+    <symbol id="icon-servers" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v4c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 9v4c0 1.66 4.03 3 9 3s9-1.34 9-3V9"/><path d="M3 13v4c0 1.66 4.03 3 9 3s9-1.34 9-3v-4"/></g></symbol>
+  </svg>
+
+  <div id="app-loader">
+    <div class="app-loader-dot"></div>
+    <span class="app-loader-text">Loading StardropHost...</span>
+  </div>
+
+  <div id="app" style="display:none">
+
+    <!-- Sidebar -->
+    <nav id="sidebar">
+      <div class="sidebar-header" style="flex-direction:column;align-items:center;padding:20px 8px 14px;gap:6px">
+        <img src="/favicon.png" style="width:96px;height:96px;object-fit:contain;display:block">
+        <span class="logo-text">StardropHost</span>
+      </div>
+      <ul class="nav-menu">
+        <li class="nav-item active" data-page="home">
+          <span class="nav-icon"><svg class="icon"><use href="#icon-dashboard"></use></svg></span>
+          <span class="nav-label">Home</span>
+        </li>
+        <li class="nav-item" data-page="features">
+          <span class="nav-icon"><svg class="icon"><use href="#icon-sprout"></use></svg></span>
+          <span class="nav-label">Features</span>
+        </li>
+        <li class="nav-item" data-page="guides">
+          <span class="nav-icon"><svg class="icon"><use href="#icon-saves"></use></svg></span>
+          <span class="nav-label">Guides</span>
+        </li>
+        <li class="nav-item" data-page="download">
+          <span class="nav-icon"><svg class="icon"><use href="#icon-terminal"></use></svg></span>
+          <span class="nav-label">Download</span>
+        </li>
+        <li class="nav-item" data-page="source">
+          <span class="nav-icon"><svg class="icon"><use href="#icon-github"></use></svg></span>
+          <span class="nav-label">Source</span>
+        </li>
+        <li class="nav-item" style="margin-top: 10px; border-top: 1px solid var(--border);" onclick="openDemo()">
+          <span class="nav-icon"><svg class="icon"><use href="#icon-globe"></use></svg></span>
+          <span class="nav-label" style="color: var(--accent); font-weight: 600;">Interactive Demo</span>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <button class="btn-icon" id="themeToggle" type="button" title="Toggle theme">
+          <svg class="icon"><use href="#icon-theme-light"></use></svg>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main content -->
+    <main id="content">
+      <header id="topbar">
+        <button id="menuToggle" class="btn-icon mobile-only" type="button" style="margin-right: 12px;">
+          <svg class="icon" id="menuIconOpen"><use href="#icon-menu"></use></svg>
+          <svg class="icon" id="menuIconClose" style="display:none"><use href="#icon-chevron-left"></use></svg>
+        </button>
+        <h2 id="pageTitle">Home</h2>
+      </header>
+
+      <div id="page-container">
+
+        <!-- ── Home ─────────────────────────────────────────── -->
+        <section id="page-home" class="page active">
+          <div class="card" style="padding:40px 32px 56px;text-align:center;">
+            <h1 style="font-size: 36px; color: var(--accent); margin-bottom: 14px;">StardropHost</h1>
+            <p style="font-size: 17px; color: var(--text-secondary); max-width: 740px; margin: 0 auto 28px; line-height: 1.7;">Your always-on Stardew Valley co-op server, managed entirely from your browser. One install command and no terminal needed again — set it up once, play whenever. Free, open source, and fully featured.</p>
+            <div class="device-showcase-wrap">
+              <!-- Desktop browser -->
+              <div class="device-desktop">
+                <div class="device-chrome">
+                  <div style="flex:1"></div>
+                  <div class="device-chrome-url">192.168.0.100:18642</div>
+                  <div style="flex:1;display:flex;justify-content:flex-end">
+                    <div class="device-chrome-dots"><span>−</span><span>□</span><span>×</span></div>
+                  </div>
+                </div>
+                <div class="device-screen" style="height:auto;display:block;">
+                  <img src="/img/desktop.png" style="width:100%;display:block;">
+                </div>
+              </div>
+              <!-- Mobile phone -->
+              <div class="device-mobile">
+                <div class="dm-screen" style="padding:0;">
+                  <img src="/img/mobile.png" style="width:100%;display:block;border-radius:33px;">
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); margin-top: 0;">
+            <div class="card" style="text-align: center; padding: 32px 24px; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+              <div style="width:48px;height:48px;border-radius:12px;background:rgba(167,139,250,0.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg class="icon" style="width:24px;height:24px;color:var(--accent)"><use href="#icon-globe"></use></svg>
+              </div>
+              <div>
+                <div style="font-size:17px;font-weight:700;margin-bottom:6px">Interactive Demo</div>
+                <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin:0">Explore the dashboard live — no download or account required. See exactly what managing your server looks like.</p>
+              </div>
+              <button class="btn btn-primary" style="margin-top:4px;font-size:14px;padding:10px 22px" onclick="openDemo()">
+                <svg class="icon"><use href="#icon-globe"></use></svg> Try Demo
+              </button>
+            </div>
+            <div class="card" style="text-align: center; padding: 32px 24px; display: flex; flex-direction: column; align-items: center; gap: 12px;">
+              <div style="width:48px;height:48px;border-radius:12px;background:rgba(34,197,94,0.12);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+                <svg class="icon" style="width:24px;height:24px;color:#22c55e"><use href="#icon-download"></use></svg>
+              </div>
+              <div>
+                <div style="font-size:17px;font-weight:700;margin-bottom:6px">Download &amp; Install</div>
+                <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin:0">Get StardropHost running on your own machine. One install command, guided setup wizard, and you're online.</p>
+              </div>
+              <button class="btn btn-success" style="margin-top:4px;font-size:14px;padding:10px 22px" onclick="document.querySelector('[data-page=\'download\']').click()">
+                <svg class="icon"><use href="#icon-download"></use></svg> Download Now
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Features ─────────────────────────────────────── -->
+        <section id="page-features" class="page">
+          <div class="cards-grid">
+            <div class="card">
+              <h3><svg class="icon" style="vertical-align: middle; margin-right: 8px;"><use href="#icon-terminal"></use></svg>Simple Setup</h3>
+              <p style="color:var(--text-secondary);font-size:13px;line-height:1.6">One command run on your server, then follow the setup wizard in a browser on your local network - even from your phone. It walks you through everything: admin password, game files, farm config, and launch. Most servers are up in under 5 minutes.</p>
+            </div>
+            <div class="card">
+              <h3><svg class="icon" style="vertical-align: middle; margin-right: 8px;"><use href="#icon-config"></use></svg>Steam &amp; GOG Supported</h3>
+              <p style="color:var(--text-secondary);font-size:13px;line-height:1.6">The setup wizard can download Stardew Valley via Steam or GOG. Credentials are never stored - used once to download, then discarded. You can also copy your existing game files across manually.</p>
+            </div>
+            <div class="card">
+              <h3><svg class="icon" style="vertical-align: middle; margin-right: 8px;"><use href="#icon-dashboard"></use></svg>Live Dashboard &amp; World Controls</h3>
+              <p style="color:var(--text-secondary);font-size:13px;line-height:1.6">Real-time server status, player count, uptime, and resource usage at a glance. Set the time, season, shared money, and build permissions - freeze time, trigger events, and clear debris, all from the browser.</p>
+            </div>
+            <div class="card">
+              <h3><svg class="icon" style="vertical-align: middle; margin-right: 8px;"><use href="#icon-players"></use></svg>Player Management &amp; Chat</h3>
+              <p style="color:var(--text-secondary);font-size:13px;line-height:1.6">Kick, ban, or manage up to 16 players. View connected players in real time and block or allowlist by name or IP. Read and send in-game chat directly from the panel - broadcast announcements to the whole server without being in-game.</p>
+            </div>
+            <div class="card">
+              <h3><svg class="icon" style="vertical-align: middle; margin-right: 8px;"><use href="#icon-saves"></use></svg>Save Management &amp; Mod Support</h3>
+              <p style="color:var(--text-secondary);font-size:13px;line-height:1.6">Upload existing saves to migrate from a local game. Auto-backups run every 24 hours and before every stop or update. Upload and manage SMAPI mods through the panel - any mod that works in multiplayer works here.</p>
+            </div>
+            <div class="card">
+              <h3><svg class="icon" style="vertical-align: middle; margin-right: 8px;"><use href="#icon-globe"></use></svg>Remote Access &amp; Multi-Instance</h3>
+              <p style="color:var(--text-secondary);font-size:13px;line-height:1.6">Install and run entirely from a single browser tab. Connect a tunnel to share your game and access the dashboard from anywhere - no port forwarding required. Run multiple independent server instances, each with their own save, mods, and settings.</p>
+            </div>
+            <div class="card">
+              <h3><svg class="icon" style="vertical-align: middle; margin-right: 8px;"><use href="#icon-config"></use></svg>Built on Docker &amp; SMAPI</h3>
+              <p style="color:var(--text-secondary);font-size:13px;line-height:1.6">StardropHost runs completely in Docker using a Linux runtime with the SMAPI modding platform. It provides persistent volumes for saves and configuration, ensuring you never lose data - even across restarts and updates.</p>
+            </div>
+          </div>
+          <div class="card" style="margin-top:0">
+            <h3>Coming Soon</h3>
+            <p style="color:var(--text-secondary);font-size:13px;line-height:1.6;margin-bottom:16px">More features are being added all the time! Have a feature request? <a href="https://discord.gg/Sr8FNxMEte" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:600">Join the community on Discord</a> and let us know.</p>
+            <ul style="color:var(--text-secondary);font-size:14px;line-height:1;padding-left:0;margin:0;list-style:none;display:flex;flex-direction:column;gap:12px">
+              <li style="padding:12px 14px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><strong style="color:var(--text-primary)">Mod Manager</strong><br><span style="font-size:13px">Allow or block mods on the server, enforce required mods for clients, and manage host-side vs client-side mod compatibility.</span></li>
+              <li style="padding:12px 14px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><strong style="color:var(--text-primary)">Discord Bot Integration</strong><br><span style="font-size:13px">Share your game chat, server status, and in-game events directly with a Discord bot in your community server.</span></li>
+              <li style="padding:12px 14px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><strong style="color:var(--text-primary)">Lobbies &amp; Advanced Player Management</strong><br><span style="font-size:13px">Password protected servers, invite-only lobbies, and deeper per-player permission controls.</span></li>
+              <li style="padding:12px 14px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><strong style="color:var(--text-primary)">Player Dashboard</strong><br><span style="font-size:13px">A dashboard your players can log into to track their own game progress, stats, farm screenshots, and more.</span></li>
+            </ul>
+            <p style="color:var(--text-muted);font-size:13px;margin-top:16px;margin-bottom:0;font-style:italic">All of these and more are currently in the works — releases coming very soon.</p>
+          </div>
+        </section>
+
+        <!-- ── Guides ───────────────────────────────────────── -->
+        <section id="page-guides" class="page">
+          <div class="card">
+            <h3>Setup Guides</h3>
+            <p style="color:var(--text-secondary);font-size:14px;line-height:1.6;margin-bottom:16px;">Everything you need to get your server running. Follow in order for a smooth setup.</p>
+
+            <details class="card admin-cred-details" style="margin-bottom: 12px; border-color: var(--border);">
+              <summary>1. Pre-requisites & System Requirements</summary>
+              <div style="padding-top:12px; font-size:13px; color:var(--text-secondary); line-height: 1.8;">
+                <p style="margin-bottom:10px"><strong style="color:var(--text-primary)">Hardware requirements:</strong></p>
+                <ul style="margin-left: 20px; margin-bottom:8px">
+                  <li><strong>Minimum:</strong> 2 GB RAM, 2 CPU core, 4 GB free storage</li>
+                </ul>
+                <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;margin-left:4px">Actual RAM and CPU usage depends on the number of players online and the amount and type of mods uploaded to the server.</p>
+                <p style="margin-bottom:10px"><strong style="color:var(--text-primary)">Supported environments:</strong></p>
+                <ul style="margin-left: 20px; margin-bottom:12px">
+                  <li><strong>Linux (Recommended)</strong> — Ubuntu 22.04/24.04 or Debian 12 on bare metal or a VM</li>
+                  <li><strong>Proxmox</strong> — Deploy as a dedicated VM <em>(recommended for home servers)</em></li>
+                  <li><strong>TrueNAS SCALE</strong> — Use the Apps section with a custom Docker Compose</li>
+                  <li><strong>Windows / macOS</strong> — Supported for testing only; not recommended for 24/7 hosting</li>
+                </ul>
+                <p style="margin-bottom:6px"><strong style="color:var(--text-primary)">Virtual Machine (recommended):</strong> For home servers running Proxmox or similar, spin up a dedicated Debian/Ubuntu VM before installing. This keeps StardropHost isolated and easy to snapshot or wipe.</p>
+                <p style="margin-top:10px"><strong style="color:var(--text-primary)">You need a copy of Stardew Valley.</strong> The setup wizard can download it via Steam or GOG, or you can copy your existing game files across manually.</p>
+              </div>
+            </details>
+
+            <details class="card admin-cred-details" style="margin-bottom: 12px; border-color: var(--border);">
+              <summary>2. Installation</summary>
+              <div style="padding-top:12px; font-size:13px; color:var(--text-secondary); line-height: 1.8;">
+                <p style="margin-bottom:10px"><strong style="color:var(--text-primary)">Option A — One-command install (recommended):</strong></p>
+                <ol style="margin-left: 20px; margin-bottom:12px">
+                  <li>Open a terminal on your Linux server or VM.</li>
+                  <li>Run the install command from the <a href="#" onclick="document.querySelector('.nav-item[data-page=\'download\']').click()" style="color:var(--accent)">Download page</a>.</li>
+                  <li>The script handles everything — dependencies, Docker, the repo, directories, and starting the containers.</li>
+                  <li>Once done, the installer will print the panel URL: <code>http://your-server-ip:18642</code></li>
+                </ol>
+                <p style="margin-bottom:10px"><strong style="color:var(--text-primary)">Option B — Manual install:</strong></p>
+                <ol style="margin-left: 20px;">
+                  <li>Clone the GitHub repository: <code>git clone https://github.com/Tomomoto10/StardropHost</code></li>
+                  <li>Change into the directory: <code>cd StardropHost</code></li>
+                  <li>Run <code>./install.sh</code> to set up dependencies and start the containers.</li>
+                  <li>Navigate to <code>http://your-server-ip:18642</code> to access the panel.</li>
+                </ol>
+              </div>
+            </details>
+
+            <details class="card admin-cred-details" style="margin-bottom: 12px; border-color: var(--border);">
+              <summary>3. First-Run Setup Wizard</summary>
+              <div style="padding-top:12px; font-size:13px; color:var(--text-secondary); line-height: 1.8;">
+                <p style="margin-bottom:10px">On first launch, StardropHost walks you through a short setup wizard.</p>
+                <ol style="margin-left: 20px;">
+                  <li><strong>Open the panel</strong> — Navigate to <code>http://your-server-ip:18642</code> in your browser. The wizard starts automatically.</li>
+                  <li><strong>Set your admin credentials</strong> — Choose a secure username and password for the dashboard. These are what you'll use to log in each time.</li>
+                  <li><strong>Game files</strong> — Choose how to provide the game: download via Steam or GOG through the wizard, or skip and copy your existing game files across manually.</li>
+                  <li><strong>Farm setup</strong> — Choose to create a new farm, or upload an existing <code>.zip</code> save file. Uploading allows you to migrate a local save to the server.</li>
+                  <li><strong>Start the server</strong> — Click <strong>Launch</strong>. The server will start and you'll land on the Dashboard. Your farm is live!</li>
+                </ol>
+                <p style="margin-top:10px">Players can connect via <strong>Co-op → Join LAN Game</strong> in Stardew Valley using the LAN IP shown in the Dashboard. For remote play, see the Remote Access guide below.</p>
+              </div>
+            </details>
+
+            <details class="card admin-cred-details" style="margin-bottom: 12px; border-color: var(--border);">
+              <summary>4. Remote Access with playit.gg</summary>
+              <div style="padding-top:12px; font-size:13px; color:var(--text-secondary); line-height: 1.8;">
+                <p style="margin-bottom:10px">playit.gg creates a free tunnel so friends can join from anywhere - no port forwarding or static IP needed.</p>
+                <p style="margin-bottom:10px"><strong style="color:var(--text-primary)">Free vs Premium:</strong> Free supports UDP (PC &amp; mobile). Premium (~$5/mo) adds TCP which is required for <strong>console players</strong> (Switch, Xbox, PlayStation) and remote dashboard access.</p>
+                <ol style="margin-left: 20px; margin-top:10px">
+                  <li>Sign up at <a href="https://playit.gg" target="_blank" style="color:var(--accent)">playit.gg</a>.</li>
+                  <li>In your playit.gg dashboard, go to <strong>Agents → Add Agent</strong> and select <em>Docker install</em>. <strong>Do not run the provided command.</strong> Instead, copy only the <code>SECRET_KEY</code> value shown.</li>
+                  <li>In StardropHost, open the <strong>Remote</strong> tab. Paste the provided Docker Compose snippet into the config box, replacing the placeholder with your <code>SECRET_KEY</code>.</li>
+                  <li>Click <strong>Apply &amp; Connect</strong>. The panel spins up the tunnel agent container.</li>
+                  <li>Back in playit.gg, go to <strong>Tunnels → Add Tunnel</strong>. Select <em>UDP</em>, port <code>24642</code>, and assign it to your server's local IP.</li>
+                  <li>playit.gg will generate a tunnel IP and port. Copy this into the Remote tab in StardropHost - it will display as your game connection address anytime. Share this <strong>IP:port</strong> with friends to enter in Stardew Valley's co-op join screen.</li>
+                </ol>
+                <p style="margin-top:14px;margin-bottom:6px"><strong style="color:var(--text-primary)">Remote Dashboard Access</strong></p>
+                <ol style="margin-left: 20px;" start="7">
+                  <li>To access your dashboard remotely, create a second tunnel - select <em>TCP</em>, port <code>18642</code> (Premium required). playit.gg will generate a <strong>domain</strong> for your dashboard. You can create a custom domain with a Premium subscription. Use this domain to reach your dashboard from anywhere.</li>
+                </ol>
+              </div>
+            </details>
+
+            <details class="card admin-cred-details" style="border-color: var(--border);">
+              <summary>5. Updating & Maintenance</summary>
+              <div style="padding-top:12px; font-size:13px; color:var(--text-secondary); line-height: 1.8;">
+                <p style="margin-bottom:10px"><strong style="color:var(--text-primary)">Updating StardropHost panel:</strong> Go to the Dashboard and click <strong>Check for Updates</strong>. If an update is available, click <strong>Update Panel</strong> — the panel rebuilds itself and reloads automatically.</p>
+                <p style="margin-bottom:10px"><strong style="color:var(--text-primary)">Updating the game:</strong> Game updates are checked automatically as part of the panel update process. After the panel restarts following an update, a game update prompt will appear in the <strong>Config</strong> tab if a new version is available (Steam and GOG only).</p>
+                <p style="margin-bottom:10px"><strong style="color:var(--text-primary)">Backups:</strong> Backups are taken automatically every 24 hours and before every stop, restart, or update. You can also trigger a manual backup any time from the <strong>Saves</strong> tab.</p>
+                <p><strong style="color:var(--text-primary)">Uninstalling:</strong> SSH into your server, <code>cd</code> into the StardropHost folder, and run <code>./uninstall.sh</code> for complete removal of all containers, files, and data.</p>
+              </div>
+            </details>
+          </div>
+
+          <!-- Server Guides card -->
+          <div class="card" style="opacity:0.85">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <h3 style="margin:0">Server Guides</h3>
+              <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:rgba(167,139,250,0.15);color:var(--accent);border:1px solid rgba(167,139,250,0.3);white-space:nowrap">Coming Soon</span>
+            </div>
+            <p style="color:var(--text-secondary);font-size:14px;line-height:1.7;margin:0 0 14px">In-depth guides for managing and customising your server.</p>
+            <ul style="list-style:none;padding:0;margin:0;font-size:13px;color:var(--text-secondary);line-height:2">
+              <li style="padding:8px 0;border-top:1px solid var(--border)">📋 &nbsp;How to read, run, and change settings in each dashboard tab</li>
+              <li style="padding:8px 0;border-top:1px solid var(--border)">🔧 &nbsp;Troubleshooting — SSH access, common errors, and manual fixes</li>
+              <li style="padding:8px 0;border-top:1px solid var(--border)">🔄 &nbsp;Updating and routine maintenance</li>
+            </ul>
+            <p style="margin:14px 0 0;font-size:12px;color:var(--text-muted);font-style:italic">Detailed guides coming soon — check back or join the Discord for the latest.</p>
+          </div>
+
+          <!-- Player Guides card -->
+          <div class="card" style="opacity:0.85">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <h3 style="margin:0">Player Guides</h3>
+              <span style="font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;background:rgba(167,139,250,0.15);color:var(--accent);border:1px solid rgba(167,139,250,0.3);white-space:nowrap">Coming Soon</span>
+            </div>
+            <p style="color:var(--text-secondary);font-size:14px;line-height:1.7;margin:0 0 14px">Everything client players need to get the most out of their server experience.</p>
+            <ul style="list-style:none;padding:0;margin:0;font-size:13px;color:var(--text-secondary);line-height:2">
+              <li style="padding:8px 0;border-top:1px solid var(--border)">🌾 &nbsp;How to connect and get started on a StardropHost server</li>
+              <li style="padding:8px 0;border-top:1px solid var(--border)">💬 &nbsp;Player commands — e.g. <code>.move_cabin [type]</code> to reposition and reskin your cabin</li>
+            </ul>
+            <p style="margin:14px 0 0;font-size:12px;color:var(--text-muted);font-style:italic">Detailed guides coming soon — check back or join the Discord for the latest.</p>
+          </div>
+
+        </section>
+
+        <!-- ── Download ─────────────────────────────────────── -->
+        <section id="page-download" class="page">
+
+          <!-- PRE-REQUISITES -->
+          <div class="card">
+            <h3>Pre-Requisites</h3>
+            <div style="padding:14px 16px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:10px;font-size:13px;line-height:1.7;margin-bottom:14px">
+              <strong style="color:var(--text-primary);display:block;margin-bottom:10px;font-size:14px">Requirements</strong>
+              <ul style="list-style:none;padding:0;margin:0;font-size:14px;color:var(--text-secondary);line-height:2.2">
+                <li>✅ Dedicated server or always-on device <em style="color:var(--text-muted)">(see below)</em></li>
+                <li>✅ 2 CPU cores minimum</li>
+                <li>✅ 2 GB+ RAM available</li>
+                <li>✅ A copy of Stardew Valley (Steam, GOG, or existing game files)</li>
+              </ul>
+            </div>
+            <div style="padding:14px 16px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:10px;font-size:13px;color:var(--text-secondary);line-height:1.7">
+              <strong style="color:var(--text-primary);display:block;margin-bottom:6px;font-size:14px">Operating System — VM Strongly Recommended</strong>
+              <p style="margin:0 0 8px">StardropHost is designed to run on a <strong style="color:var(--text-primary)">dedicated server or always-on device</strong> — not your main PC. Running it on a separate machine means the server stays online 24/7 without tying up your personal computer. A VM on a home server or spare machine is the ideal setup.</p>
+              <p style="margin:0 0 8px">It is <strong style="color:var(--text-primary)">strongly recommended</strong> to run it inside a dedicated Virtual Machine — this keeps it isolated, easy to snapshot, and simple to reset without affecting the host system.</p>
+              <p style="margin:0 0 8px">Recommended environments:</p>
+              <ul style="margin:0 0 4px;padding-left:18px;line-height:2">
+                <li><strong style="color:var(--text-primary)">Proxmox VE</strong> — VM only</li>
+                <li><strong style="color:var(--text-primary)">TrueNAS SCALE</strong> — via VM (not Apps/containers)</li>
+                <li><strong style="color:var(--text-primary)">Any hypervisor</strong> — VirtualBox, VMware, Hyper-V</li>
+                <li><strong style="color:var(--text-primary)">Bare metal Linux</strong> — Debian or Ubuntu recommended</li>
+              </ul>
+              <p style="margin:8px 0 0;color:var(--text-muted);font-size:12px">Other Linux environments should work but have not all been tested. The install script handles Docker and all other dependencies automatically — no manual setup required.</p>
+            </div>
+          </div>
+
+          <!-- INSTALL -->
+          <div class="card">
+            <h3>Download &amp; Install</h3>
+            <p style="color:var(--text-secondary);font-size:14px;line-height:1.6;margin-bottom:16px">
+              Run the command below on your Linux terminal. The install script handles everything and launches the setup wizard automatically.
+            </p>
+            <div style="padding:14px 16px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:10px;font-size:13px;line-height:1.7">
+              <strong style="color:var(--text-primary);display:block;margin-bottom:10px;font-size:14px">Install Command</strong>
+              <div class="code-box" style="margin:0">
+                <span id="install-cmd">sudo curl -sSL https://raw.githubusercontent.com/Tomomoto10/StardropHost-dev/main/quick-start.sh | bash</span>
+                <button class="btn btn-sm btn-primary" onclick="copyCommand()">Copy</button>
+              </div>
+            </div>
+            <p style="color:var(--text-secondary);font-size:14px;line-height:1.6;margin-top:16px">Once the script finishes, it will print the dashboard URL in the terminal. Copy it and open it in a browser on any device connected to the same local network to complete the setup wizard.</p>
+          </div>
+
+          <!-- POST-INSTALL -->
+          <div class="card">
+            <h3>After Installing</h3>
+
+            <div style="padding:14px 16px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:10px;font-size:13px;line-height:1.7;margin-bottom:14px">
+              <strong style="color:var(--text-primary);display:block;margin-bottom:8px;font-size:14px">Accessing Your Dashboard</strong>
+              <p style="margin:0 0 10px;color:var(--text-secondary)">If you didn't catch the URL when the install finished, you can retrieve it by running:</p>
+              <div class="code-box" style="margin:0 0 4px">
+                <span>docker logs stardrop</span>
+                <button class="btn btn-sm btn-primary" onclick="navigator.clipboard.writeText('docker logs stardrop').then(() => demoToast('Copied!', 'success'))">Copy</button>
+              </div>
+              <p style="margin:0 0 10px;color:var(--text-muted);font-size:12px">The dashboard URL may appear further up — scroll up through the logs if you don't see it immediately.</p>
+              <p style="margin:0 0 10px;color:var(--text-secondary)">Or go directly to the dashboard using your server's local IP address:</p>
+              <div style="margin:0 0 10px;font-family:monospace;font-size:14px;background:var(--bg-primary);padding:9px 14px;border-radius:6px;border:1px solid var(--border);color:var(--accent)">http://&lt;your-server-ip&gt;:18642</div>
+              <span style="color:var(--text-secondary)">For example: <code>http://192.168.1.100:18642</code> — accessible from any device on your local network.</span>
+              <div style="margin-top:8px;color:var(--text-muted);font-size:12px">Not sure what the IP is? Run <code>ip a</code> or <code>hostname -I</code> on the server.</div>
+            </div>
+
+            <div style="padding:12px 16px;background:rgba(167,139,250,0.07);border:1px solid rgba(167,139,250,0.2);border-radius:10px;font-size:13px;color:var(--text-secondary);line-height:1.7">
+              <strong style="color:var(--accent);display:block;margin-bottom:4px;font-size:14px">Need more help?</strong>
+              The <a href="#" onclick="document.querySelector('.nav-item[data-page=\'guides\']').click()" style="color:var(--accent);text-decoration:none;font-weight:600">Guides page</a> walks through the full setup from scratch — including the wizard, game files, remote access, and troubleshooting.
+            </div>
+          </div>
+
+        </section>
+
+        <!-- ── Source & Contact ─────────────────────────────── -->
+        <section id="page-source" class="page">
+          <div class="cards-grid" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));">
+            <div class="card" style="text-align: center; display: flex; flex-direction: column;">
+              <h3 style="margin-bottom: 12px;"><svg class="icon" style="vertical-align: middle; margin-right: 6px;"><use href="#icon-github"></use></svg>GitHub</h3>
+              <p style="color:var(--text-secondary);font-size:13px;line-height:1.6;margin-bottom:20px;flex: 1;">Source code, issue tracking, and feature requests. Please use the appropriate labels when submitting issues.</p>
+              <a href="https://github.com/Tomomoto10/StardropHost" target="_blank" class="btn btn-secondary" style="justify-content: center;">View Source</a>
+            </div>
+            <div class="card" style="text-align: center; display: flex; flex-direction: column;">
+              <h3 style="margin-bottom: 12px;">Discord</h3>
+              <p style="color:var(--text-secondary);font-size:13px;line-height:1.6;margin-bottom:20px;flex: 1;">Join our community to get help, discuss features, and connect with other server hosts.</p>
+              <a href="https://discord.gg/Sr8FNxMEte" target="_blank" class="btn btn-primary" style="background: #5865F2; justify-content: center;">Join Community</a>
+            </div>
+            <div class="card" style="text-align: center; display: flex; flex-direction: column;">
+              <h3 style="margin-bottom: 12px;">Contact</h3>
+              <p style="color:var(--text-secondary);font-size:13px;line-height:1.6;margin-bottom:20px;flex: 1;">Reach out directly via email for private inquiries or support.</p>
+              <div class="code-box" style="padding: 10px 16px; justify-content: center; gap: 10px; margin-bottom: 0;">
+                <span id="contact-email">info@stardrophost.app</span>
+                <button class="btn btn-sm btn-secondary" onclick="navigator.clipboard.writeText('info@stardrophost.app').then(() => alert('Email copied!'));">Copy</button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div><!-- /page-container -->
+    </main>
+  </div><!-- /app -->
+  
+  <!-- ── Interactive Demo Overlay ──────────────────────────────── -->
+  <div id="demo-overlay" style="display:none; position:fixed; inset:0; z-index:9999; background:var(--bg-primary); flex-direction:column;">
+    <div class="demo-warning-bar">
+      <span>⚠️ This is an interactive demo. All functions are simulated and do not affect a real server. The UI shown here may not always reflect the latest version of the dashboard — features and layout are updated regularly.</span>
+      <button class="btn btn-sm btn-secondary" style="background: rgba(0,0,0,0.2); color: #12101a; border:none;" onclick="closeDemo()">Exit Demo</button>
+    </div>
+    <div id="demo-toast-container" style="position:absolute; bottom:1.5rem; right:1.5rem; z-index:200; display:flex; flex-direction:column; gap:0.5rem; pointer-events:none;"></div>
+    <div style="display:flex; flex:1; position:relative; overflow:hidden;">
+      <!-- Demo Sidebar -->
+      <nav id="demo-sidebar" style="position:absolute; top:0; bottom:0; left:0; z-index:100;">
+        <div class="sidebar-header" style="flex-direction:column;align-items:center;padding:20px 8px 14px;gap:6px">
+          <img src="/favicon.png" style="width:96px;height:96px;object-fit:contain;display:block">
+          <span class="logo-text">StardropHost Demo</span>
+        </div>
+        <ul class="nav-menu">
+          <li class="nav-item demo-nav-item" data-page="servers"><span class="nav-icon"><svg class="icon"><use href="#icon-servers"></use></svg></span><span class="nav-label">Servers</span></li>
+          <li class="nav-item demo-nav-item active" data-page="dashboard"><span class="nav-icon"><svg class="icon"><use href="#icon-dashboard"></use></svg></span><span class="nav-label">Dashboard</span></li>
+          <li class="nav-item demo-nav-item" data-page="farm"><span class="nav-icon"><svg class="icon"><use href="#icon-sprout"></use></svg></span><span class="nav-label">Farm</span></li>
+          <li class="nav-item demo-nav-item" data-page="players"><span class="nav-icon"><svg class="icon"><use href="#icon-players"></use></svg></span><span class="nav-label">Players</span></li>
+          <li class="nav-item demo-nav-item" data-page="chat"><span class="nav-icon"><svg class="icon"><use href="#icon-chat"></use></svg></span><span class="nav-label">Chat</span></li>
+          <li class="nav-item demo-nav-item" data-page="saves"><span class="nav-icon"><svg class="icon"><use href="#icon-saves"></use></svg></span><span class="nav-label">Saves</span></li>
+          <li class="nav-item demo-nav-item" data-page="mods"><span class="nav-icon"><svg class="icon"><use href="#icon-mods"></use></svg></span><span class="nav-label">Mods</span></li>
+          <li class="nav-item demo-nav-item" data-page="terminal"><span class="nav-icon"><svg class="icon"><use href="#icon-terminal"></use></svg></span><span class="nav-label">Console</span></li>
+          <li class="nav-item demo-nav-item" data-page="remote"><span class="nav-icon"><svg class="icon"><use href="#icon-globe"></use></svg></span><span class="nav-label">Remote</span></li>
+          <li class="nav-item demo-nav-item" data-page="config"><span class="nav-icon"><svg class="icon"><use href="#icon-config"></use></svg></span><span class="nav-label">Config</span></li>
+        </ul>
+      </nav>
+      <!-- Demo Content -->
+      <main id="demo-content" style="min-height:0; overflow-y:auto; position:relative;">
+        <header id="topbar" style="position:sticky; top:0; z-index:50;">
+          <button id="demo-menuToggle" class="btn-icon mobile-only" type="button" style="margin-right: 12px;">
+            <svg class="icon" id="demo-menuIconOpen"><use href="#icon-menu"></use></svg>
+            <svg class="icon" id="demo-menuIconClose" style="display:none"><use href="#icon-chevron-left"></use></svg>
+          </button>
+          <h2 id="demo-pageTitle">Dashboard</h2>
+          <div class="topbar-right">
+            <span class="status-badge running" id="demo-status-orb"><span class="status-dot running"></span><span id="demo-status-text">Running</span></span>
+          </div>
+        </header>
+        <div id="page-container">
+          <!-- DASHBOARD -->
+          <section id="demo-page-dashboard" class="demo-page page active">
+            <div class="cards-grid">
+              <div class="card stat-card"><div class="stat-icon" style="justify-content:center"><span class="status-dot running" style="width:18px;height:18px;flex-shrink:0"></span></div><div class="stat-info"><div class="stat-label">Server Status</div><div class="stat-value">Running</div></div></div>
+              <div class="card stat-card"><div class="stat-icon"><svg class="icon"><use href="#icon-globe"></use></svg></div><div class="stat-info"><div class="stat-label">Remote Access</div><div class="stat-value">Active</div></div></div>
+              <div class="card stat-card"><div class="stat-icon"><svg class="icon"><use href="#icon-players"></use></svg></div><div class="stat-info"><div class="stat-label">Online Players</div><div class="stat-value">3/8</div></div></div>
+              <div class="card stat-card"><div class="stat-icon"><svg class="icon"><use href="#icon-clock"></use></svg></div><div class="stat-info"><div class="stat-label">Uptime</div><div class="stat-value">12h 45m</div></div></div>
+              <div class="card stat-card"><div class="stat-icon"><svg class="icon"><use href="#icon-calendar"></use></svg></div><div class="stat-info"><div class="stat-label">Game Day</div><div class="stat-value">Summer 14, Year 2</div></div></div>
+              <div class="card stat-card"><div class="stat-icon"><svg class="icon"><use href="#icon-saves"></use></svg></div><div class="stat-info"><div class="stat-label">Backups</div><div class="stat-value">5</div></div></div>
+              <div class="card stat-card"><div class="stat-icon"><svg class="icon"><use href="#icon-mods"></use></svg></div><div class="stat-info"><div class="stat-label">Loaded Mods</div><div class="stat-value">0</div></div></div>
+            </div>
+            <div class="card" id="resources-card">
+              <h3>System Resources</h3>
+              <div class="resource-bar"><div class="resource-header"><span>CPU</span><span id="demo-cpu-value">25%</span></div><div class="progress-bar"><div class="progress-fill" id="demo-cpu-bar" style="width:25%"></div></div></div>
+              <div class="resource-bar"><div class="resource-header"><span>RAM</span><span id="demo-ram-value">840 / 2048 MB</span></div><div class="progress-bar"><div class="progress-fill" id="demo-ram-bar" style="width:41%"></div></div></div>
+            </div>
+            <div class="card">
+              <h3>Server Details</h3>
+              <div class="details-grid">
+                <div class="detail-item"><div class="detail-label">LAN IP</div><div class="detail-value copyable" onclick="demoBtnAlert('Copy LAN IP')">192.168.1.50</div><div class="detail-note">Enter this IP in Stardew Valley's Co-op join screen when playing on local network.</div></div>
+                <div class="detail-item"><div class="detail-label">Local IP</div><div class="detail-value copyable" onclick="demoBtnAlert('Copy Local IP')">127.0.0.1</div><div class="detail-note">Used for remote connection setups, or if Stardew Valley is running on the same machine as StardropHost.</div></div>
+                <div class="detail-item"><div class="detail-label">Game Port</div><div class="detail-value copyable" onclick="demoBtnAlert('Copy Game Port')">24642</div><div class="detail-note">Used for remote connection to Stardew Valley Game.</div></div>
+                <div class="detail-item"><div class="detail-label">Dashboard Port</div><div class="detail-value copyable" onclick="demoBtnAlert('Copy Dashboard Port')">18642</div><div class="detail-note">Access the StardropHost dashboard from a browser on your network.</div></div>
+              </div>
+            </div>
+            <div class="card">
+              <h3 style="margin-bottom:10px">Remote Access</h3>
+              <div class="details-grid">
+                <div class="detail-item">
+                  <div class="detail-label">Remote Game</div>
+                  <div class="detail-value copyable" onclick="demoBtnAlert('Copy Remote Game address')">198.51.100.42:24642</div>
+                  <div class="detail-note">Share with players to connect from anywhere via playit.gg.</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Remote Dashboard</div>
+                  <div class="detail-value copyable" onclick="demoBtnAlert('Copy Remote Dashboard address')">stardropfarm-panel.joinmy.game</div>
+                  <div class="detail-note">Access StardropHost dashboard remotely via playit.gg TCP tunnel.</div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Quick Actions</h3>
+              <div class="action-buttons">
+                <button class="btn btn-warning" onclick="demoBtnAlert('Restart Server')"><svg class="icon"><use href="#icon-refresh"></use></svg>Restart Server</button>
+                <button id="demo-server-btn" class="btn btn-danger" onclick="demoToggleServer()"><svg class="icon"><use href="#icon-screen"></use></svg>Stop Server</button>
+                <button class="btn btn-secondary" onclick="demoBtnAlert('Check for Updates')"><svg class="icon"><use href="#icon-download"></use></svg>Check for Updates</button>
+                <button class="btn btn-secondary" onclick="demoBtnAlert('Toggle Remote')"><svg class="icon"><use href="#icon-globe"></use></svg>Pause Remote</button>
+                <button class="btn btn-secondary quick-action-add" onclick="demoToast('Remove a quick action')" title="Remove quick actions" style="width:40px;padding:0;font-size:22px;line-height:1">−</button>
+                <button class="btn btn-secondary quick-action-add" onclick="demoToast('Add a quick action')" title="Add quick action" style="width:40px;padding:0;font-size:22px;line-height:1">+</button>
+              </div>
+            </div>
+          </section>
+          
+          <!-- FARM -->
+          <section id="demo-page-farm" class="demo-page page">
+            <div class="card">
+              <h3>Live Status</h3>
+              <div class="details-grid">
+                <div class="detail-item"><div class="detail-label">Date</div><div class="detail-value">Summer 14, Year 2</div></div>
+                <div class="detail-item"><div class="detail-label">Time</div><div class="detail-value" id="demo-farm-time">1:20pm</div></div>
+                <div class="detail-item"><div class="detail-label">Weather</div><div class="detail-value">Sunny</div></div>
+                <div class="detail-item"><div class="detail-label">Game State</div><div class="detail-value"><span class="status-dot running" style="display:inline-block;margin-right:6px;vertical-align:middle"></span>Playing</div></div>
+              </div>
+              <div class="farm-player-strip" style="margin-top:12px">
+                <span class="farm-player-dot">●</span>
+                <span><strong>CoolFarmer</strong> · Mines (Floor 40)</span>
+                <span class="farm-player-dot">●</span>
+                <span><strong>SproutKing</strong> · Beach</span>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Farm Info</h3>
+              <div class="details-grid">
+                <div class="detail-item"><div class="detail-label">Farm Name</div><div class="detail-value">Stardrop Farm</div></div>
+                <div class="detail-item"><div class="detail-label">Farm Type</div><div class="detail-value">Standard</div></div>
+                <div class="detail-item"><div class="detail-label">Shared Money</div><div class="detail-value" id="demo-farm-money">45,200g</div></div>
+                <div class="detail-item"><div class="detail-label">Wallets</div><div class="detail-value">Shared</div></div>
+              </div>
+            </div>
+            <details class="card admin-cred-details">
+              <summary>Community Center
+                <span style="margin-left:auto;display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);font-weight:400">
+                  <span>35% · 2/6 rooms</span>
+                  <span class="cc-room-bar" style="width:80px"><span class="cc-room-fill" style="width:35%"></span></span>
+                </span>
+              </summary>
+              <div style="padding-top:8px;display:flex;flex-direction:column;gap:8px;font-size:13px">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><span>Pantry</span><span style="color:#22c55e;font-weight:600">✓ Complete</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><span>Crafts Room</span><span style="color:#22c55e;font-weight:600">✓ Complete</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><span>Fish Tank</span><span style="color:var(--accent-warn);font-weight:600">3 / 5 bundles</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><span>Boiler Room</span><span style="color:var(--accent-warn);font-weight:600">2 / 3 bundles</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><span>Bulletin Board</span><span style="color:var(--text-secondary)">1 / 6 bundles</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><span>Vault</span><span style="color:var(--text-secondary)">0 / 4 bundles</span></div>
+              </div>
+            </details>
+            <details class="card admin-cred-details">
+              <summary>World Controls</summary>
+              <div style="padding-top:10px">
+                <p style="font-size:13px;color:var(--text-secondary);margin:0 0 10px">Commands sent directly to the running game via SMAPI.</p>
+                <div style="display:flex;flex-direction:column;gap:0">
+                  <div class="admin-cmd-row">
+                    <span class="admin-cmd-label">Shared Money</span>
+                    <input type="number" class="form-input" placeholder="Amount in gold" style="width:150px" id="demo-set-money">
+                    <button class="btn btn-sm btn-primary" onclick="demoSetMoney()">Set</button>
+                  </div>
+                  <div class="admin-cmd-row">
+                    <span class="admin-cmd-label">Set Time</span>
+                    <input type="number" class="form-input" placeholder="e.g. 1300 (1pm)" style="width:150px" id="demo-set-time">
+                    <button class="btn btn-sm btn-primary" onclick="demoToast('Time updated ✓', 'success')">Set</button>
+                  </div>
+                  <div class="admin-cmd-row">
+                    <span class="admin-cmd-label">Set Day</span>
+                    <input type="number" class="form-input" placeholder="1 – 28" min="1" max="28" style="width:100px">
+                    <button class="btn btn-sm btn-primary" onclick="demoToast('Day updated ✓', 'success')">Set</button>
+                  </div>
+                  <div class="admin-cmd-row">
+                    <span class="admin-cmd-label">Set Season</span>
+                    <select class="form-input" style="width:150px"><option value="spring">Spring</option><option value="summer" selected>Summer</option><option value="fall">Fall</option><option value="winter">Winter</option></select>
+                    <button class="btn btn-sm btn-primary" onclick="demoToast('Season updated ✓', 'success')">Set</button>
+                  </div>
+                  <div class="admin-cmd-row">
+                    <span class="admin-cmd-label">Set Year</span>
+                    <input type="number" class="form-input" placeholder="Year" min="1" style="width:100px">
+                    <button class="btn btn-sm btn-primary" onclick="demoToast('Year updated ✓', 'success')">Set</button>
+                  </div>
+                  <div class="admin-cmd-row">
+                    <span class="admin-cmd-label">Crop Saver</span>
+                    <button class="btn btn-sm" id="demo-cropsaver-btn" onclick="demoToggleCropSaver()">Enabled</button>
+                    <span style="font-size:12px;color:var(--text-muted);margin-left:4px"></span>
+                  </div>
+                  <div class="admin-cmd-row">
+                    <span class="admin-cmd-label">Pause the Game</span>
+                    <button class="btn btn-sm" id="demo-pause-btn" onclick="demoTogglePause()">Pause</button>
+                    <span id="demo-pause-state" style="font-size:12px;color:var(--text-muted);margin-left:4px"></span>
+                  </div>
+                  <div class="admin-cmd-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <span class="admin-cmd-label" style="margin:0">Freeze Time</span>
+                      <button class="btn btn-sm" id="demo-freeze-btn" onclick="demoToggleFreeze()">Toggle Freeze</button>
+                      <span id="demo-freeze-state" style="font-size:12px;color:var(--text-muted)"></span>
+                    </div>
+                    <input type="text" class="form-input" placeholder="Chat message on toggle (optional)" style="max-width:340px;width:100%">
+                  </div>
+                  <div class="admin-cmd-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+                    <div style="display:flex;align-items:center;gap:6px">
+                      <span class="admin-cmd-label" style="margin:0">Build Permissions</span>
+                      <select class="form-input" style="width:170px"><option value="off">Host Only (off)</option><option value="owned">Own Buildings (owned)</option><option value="on">Everyone (on)</option></select>
+                      <button class="btn btn-sm btn-primary" onclick="demoToast('Build permissions updated ✓', 'success')">Set</button>
+                    </div>
+                    <div style="font-size:11px;color:var(--text-muted)">Set to <em>owned</em> or <em>on</em> to allow players to use <code>move_cabin [types]</code></div>
+                    <div style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:6px">
+                      <span>types =</span>
+                      <select class="form-input" style="width:160px;font-size:11px;padding:2px 6px;height:auto">
+                        <option value="">— select type —</option>
+                        <option>stone — Stone Cabin</option><option>plank — Plank Cabin</option><option>log — Log Cabin</option>
+                        <option>neighbor — Neighbor Cabin</option><option>rustic — Rustic Cabin</option>
+                        <option>beach — Beach Cabin</option><option>trailer — Trailer Cabin</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="admin-cmd-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+                    <span class="admin-cmd-label" style="margin:0">Upgrade Cabin</span>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                      <select class="form-input" style="flex:1;min-width:150px"><option value="">— Select player —</option><option>CoolFarmer</option><option>SproutKing</option></select>
+                      <select class="form-input" style="flex:1;min-width:130px"><option value="">— level —</option><option value="1">Level 1 (Room)</option><option value="2">Level 2 (Kitchen)</option><option value="3">Level 3 (Basement)</option></select>
+                      <button class="btn btn-sm btn-primary" onclick="demoToast('Cabin upgraded — player will be kicked briefly ✓', 'success')">Upgrade</button>
+                    </div>
+                  </div>
+                  <div class="admin-cmd-row" style="flex-direction:column;align-items:flex-start;gap:6px;border-bottom:none">
+                    <span class="admin-cmd-label" style="margin:0">Clear</span>
+                    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                      <select class="form-input" style="width:auto"><option>Farm</option><option>FarmHouse</option><option>Greenhouse</option><option>Town</option><option>Beach</option><option>Forest</option><option>Desert</option></select>
+                      <select class="form-input" style="width:auto"><option>Debris</option><option>Crops</option><option>Grass</option><option>Trees</option><option>Fruit Trees</option><option>Furniture</option><option>Removable</option><option>Everything</option></select>
+                      <button class="btn btn-sm btn-primary" onclick="demoToast('Area cleared ✓', 'success')">Clear</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </section>
+
+          <!-- PLAYERS -->
+          <section id="demo-page-players" class="demo-page page">
+            <div class="card">
+              <div class="section-header">
+                <h3>Online Players</h3><span class="badge">2 / 4</span>
+              </div>
+              <div class="players-list">
+                <div class="player-card">
+                  <div class="player-avatar"><svg class="icon"><use href="#icon-players"></use></svg></div>
+                  <div class="player-body">
+                    <div class="player-name">CoolFarmer</div>
+                    <div class="player-ip-line">Current IP: <strong>192.168.1.115</strong></div>
+                    <div class="player-stats-grid">
+                      <div class="player-stat-cell"><div class="player-stat-label">Location</div><div class="player-stat-value">Mines Lv.40</div></div>
+                      <div class="player-stat-cell"><div class="player-stat-label">Health</div><div class="player-stat-value">❤️ 80/100</div></div>
+                      <div class="player-stat-cell"><div class="player-stat-label">Stamina</div><div class="player-stat-value">⚡ 132/180</div></div>
+                    </div>
+                  </div>
+                  <div class="player-actions">
+                    <button class="btn btn-sm" onclick="demoToast('Admin controls for CoolFarmer')">Admin</button>
+                    <button class="btn btn-sm" onclick="demoToast('Simulated: CoolFarmer kicked', 'warn')">Kick</button>
+                    <button class="btn btn-sm btn-danger" onclick="demoToast('Simulated: CoolFarmer banned', 'error')">Ban</button>
+                  </div>
+                </div>
+                <div class="player-card">
+                  <div class="player-avatar"><svg class="icon"><use href="#icon-players"></use></svg></div>
+                  <div class="player-body">
+                    <div class="player-name">SproutKing</div>
+                    <div class="player-ip-line">Current IP: <strong>192.168.1.208</strong></div>
+                    <div class="player-stats-grid">
+                      <div class="player-stat-cell"><div class="player-stat-label">Location</div><div class="player-stat-value">Beach</div></div>
+                      <div class="player-stat-cell"><div class="player-stat-label">Health</div><div class="player-stat-value">❤️ 100/100</div></div>
+                      <div class="player-stat-cell"><div class="player-stat-label">Stamina</div><div class="player-stat-value">⚡ 270/270</div></div>
+                    </div>
+                  </div>
+                  <div class="player-actions">
+                    <button class="btn btn-sm" onclick="demoToast('Admin controls for SproutKing')">Admin</button>
+                    <button class="btn btn-sm" onclick="demoToast('Simulated: SproutKing kicked', 'warn')">Kick</button>
+                    <button class="btn btn-sm btn-danger" onclick="demoToast('Simulated: SproutKing banned', 'error')">Ban</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
+                <div>
+                  <h3 style="margin:0 0 4px">Connection Security</h3>
+                  <p id="demo-sec-desc" style="font-size:13px;color:var(--text-secondary);margin:0">Players matching a blocked name or IP are kicked immediately on connection.</p>
+                </div>
+                <div class="toggle-group">
+                  <button id="demo-sec-block-btn" class="btn btn-sm active" onclick="demoSecurityMode('block')">Block List</button>
+                  <button id="demo-sec-allow-btn" class="btn btn-sm" onclick="demoSecurityMode('allow')">Allow List</button>
+                </div>
+              </div>
+              <div id="demo-block-section">
+                <div class="sec-entry"><span class="sec-badge sec-badge-name">NAME</span><span class="sec-value">GrieferDude99</span><span class="sec-desc">Repeated griefing</span><button class="btn btn-sm" onclick="demoToast('GrieferDude99 removed from block list')">Remove</button></div>
+                <div class="sec-entry"><span class="sec-badge sec-badge-ip">IP</span><span class="sec-value">10.0.0.42</span><span class="sec-desc">VPN hopper</span><button class="btn btn-sm" onclick="demoToast('IP removed from block list')">Remove</button></div>
+                <div class="security-entry-form" style="margin-top:10px">
+                  <select class="form-input"><option>Name</option><option>IP</option></select>
+                  <input type="text" class="form-input" placeholder="Player name or IP address">
+                  <input type="text" class="form-input" placeholder="Reason (optional)">
+                  <button class="btn btn-danger btn-sm" onclick="demoToast('Player added to block list', 'error')">Block</button>
+                </div>
+              </div>
+              <div id="demo-allow-section" style="display:none">
+                <p style="font-size:13px;color:var(--text-secondary);margin:0 0 12px">Only players on this list can join when Allow List mode is active.</p>
+                <div class="sec-entry"><span class="sec-badge sec-badge-name">NAME</span><span class="sec-value">FarmerJohn</span><span class="sec-desc">Host</span><button class="btn btn-sm" onclick="demoToast('Entry removed')">Remove</button></div>
+                <div class="sec-entry"><span class="sec-badge sec-badge-name">NAME</span><span class="sec-value">CoolFarmer</span><span class="sec-desc">Trusted player</span><button class="btn btn-sm" onclick="demoToast('Entry removed')">Remove</button></div>
+                <div class="security-entry-form" style="margin-top:10px">
+                  <select class="form-input"><option>Name</option><option>IP</option></select>
+                  <input type="text" class="form-input" placeholder="Player name or IP address">
+                  <input type="text" class="form-input" placeholder="Note (optional)">
+                  <button class="btn btn-success btn-sm" onclick="demoToast('Player added to allow list', 'success')">Allow</button>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <h3>Known Player IPs</h3>
+              <p style="font-size:13px;color:var(--text-secondary);margin:0 0 4px">Automatically recorded when players join. Used for IP-alias blocking. You can manually update a friend's IP if it changes.</p>
+              <p style="font-size:13px;color:var(--text-secondary);margin:0 0 12px">Press the lock button to lock this user (Device/IP) to the Player. If another IP/Device tries to connect to that Player they will be kicked.</p>
+              <div class="sec-entry"><span class="sec-badge sec-badge-name">Name</span><span class="sec-value">CoolFarmer</span><code style="font-size:12px;color:var(--text-secondary);margin-left:6px">192.168.1.115</code><button class="btn btn-sm" style="padding:2px 8px;font-size:11px;background:#ef4444;color:#fff;border-color:#ef4444;flex-shrink:0;margin-left:6px" onclick="demoToast('Entry removed')">✕</button><button class="btn btn-sm" style="padding:2px 7px;font-size:11px;background:rgba(234,179,8,0.18);color:#d97706;border-color:rgba(234,179,8,0.5);flex-shrink:0" onclick="demoToast('IP locked to CoolFarmer ✓', 'success')"><svg class="icon" style="width:12px;height:12px"><use href="#icon-lock"></use></svg> Lock</button></div>
+              <div class="sec-entry"><span class="sec-badge sec-badge-name">Name</span><span class="sec-value">SproutKing</span><code style="font-size:12px;color:var(--text-secondary);margin-left:6px">192.168.1.208</code><button class="btn btn-sm" style="padding:2px 8px;font-size:11px;background:#ef4444;color:#fff;border-color:#ef4444;flex-shrink:0;margin-left:6px" onclick="demoToast('Entry removed')">✕</button><button class="btn btn-sm" style="padding:2px 7px;font-size:11px;background:rgba(234,179,8,0.18);color:#d97706;border-color:rgba(234,179,8,0.5);flex-shrink:0" onclick="demoToast('IP locked to SproutKing ✓', 'success')"><svg class="icon" style="width:12px;height:12px"><use href="#icon-lock"></use></svg> Lock</button></div>
+            </div>
+            <div class="card">
+              <div class="section-header"><h3>Farmhand Slots</h3></div>
+              <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+                <div style="padding:10px 14px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"><div><span style="font-weight:600">Slot 1</span> — <span style="color:var(--text-secondary)">CoolFarmer's Cabin</span></div><span class="save-badge">Occupied</span></div>
+                <div style="padding:10px 14px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"><div><span style="font-weight:600">Slot 2</span> — <span style="color:var(--text-secondary)">SproutKing's Cabin</span></div><span class="save-badge">Occupied</span></div>
+                <div style="padding:10px 14px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"><div><span style="font-weight:600">Slot 3</span> — <span style="color:var(--text-secondary)">Unclaimed</span></div><span style="font-size:12px;color:var(--text-muted)">Available</span></div>
+                <div style="padding:10px 14px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"><div><span style="font-weight:600">Slot 4</span> — <span style="color:var(--text-secondary)">Unclaimed</span></div><span style="font-size:12px;color:var(--text-muted)">Available</span></div>
+                <div style="padding:10px 14px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"><div><span style="font-weight:600">Slot 5</span> — <span style="color:var(--text-secondary)">Unclaimed</span></div><span style="font-size:12px;color:var(--text-muted)">Available</span></div>
+                <div style="padding:10px 14px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"><div><span style="font-weight:600">Slot 6</span> — <span style="color:var(--text-secondary)">Unclaimed</span></div><span style="font-size:12px;color:var(--text-muted)">Available</span></div>
+                <div style="padding:10px 14px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"><div><span style="font-weight:600">Slot 7</span> — <span style="color:var(--text-secondary)">Unclaimed</span></div><span style="font-size:12px;color:var(--text-muted)">Available</span></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- CHAT -->
+          <section id="demo-page-chat" class="demo-page page">
+            <div class="card">
+              <div class="section-header">
+                <span id="demo-chat-target-label" style="font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px;border:1px solid var(--border);background:var(--bg-tertiary);color:var(--text-secondary)">World Chat</span>
+                <div class="action-group" style="margin-left:auto">
+                  <button class="btn btn-sm btn-secondary" onclick="demoToast('Chat log downloaded')">Download</button>
+                  <button class="btn btn-sm btn-secondary" onclick="demoClearChat()">Clear</button>
+                  <button class="btn btn-sm btn-danger" onclick="demoClearChat()">Clear All</button>
+                </div>
+              </div>
+              <div class="chat-pills-wrap">
+                <div class="chat-player-pills">
+                  <button class="chat-pill demo-chat-pill active" onclick="demoSetChatPlayer('World Chat', this)">World Chat</button>
+                  <span class="chat-dm-separator">Private Chat</span>
+                  <button class="chat-pill chat-pill-dm demo-chat-pill" onclick="demoToast('Private messaging is available in the full StardropHost dashboard.')">CoolFarmer</button>
+                  <button class="chat-pill chat-pill-dm demo-chat-pill" onclick="demoToast('Private messaging is available in the full StardropHost dashboard.')">SproutKing</button>
+                </div>
+              </div>
+              <div id="demo-chat-feed" class="chat-feed">
+                <div class="chat-msg" data-player="world"><span class="chat-meta">FarmerJohn <span class="chat-time">1:18pm</span></span><span class="chat-text">hey everyone, should we work on the fish tank bundles today?</span></div>
+                <div class="chat-msg" data-player="world"><span class="chat-meta">CoolFarmer <span class="chat-time">1:19pm</span></span><span class="chat-text">yes! heading to the mines first to get the gold fish</span></div>
+                <div class="chat-msg" data-player="world"><span class="chat-meta">SproutKing <span class="chat-time">1:19pm</span></span><span class="chat-text">I'll check the beach for largemouth bass 🎣</span></div>
+                <div class="chat-msg" data-player="world"><span class="chat-meta">CoolFarmer <span class="chat-time">1:21pm</span></span><span class="chat-text">found a catfish in the river too!</span></div>
+<div class="chat-msg" data-player="CoolFarmer" style="display:none"><span class="chat-meta">CoolFarmer <span class="chat-time">1:10pm</span></span><span class="chat-text">do you have spare wood I could use for upgrades?</span></div>
+                <div class="chat-msg chat-msg-host" data-player="CoolFarmer" style="display:none"><span class="chat-meta">You <span class="chat-time">1:11pm</span></span><span class="chat-text">yeah, there's like 200 in the chest by the barn</span></div>
+                <div class="chat-msg" data-player="SproutKing" style="display:none"><span class="chat-meta">SproutKing <span class="chat-time">1:20pm</span></span><span class="chat-text">yo I found a treasure chest in the ocean! got an old sword</span></div>
+                <div class="chat-msg chat-msg-host" data-player="SproutKing" style="display:none"><span class="chat-meta">You <span class="chat-time">1:20pm</span></span><span class="chat-text">nice! keep it or sell it?</span></div>
+              </div>
+              <div class="chat-color-row" id="demo-chat-color-row">
+                <button class="chat-color-swatch demo-color-swatch active" style="background:#ffffff" onclick="demoSetChatColor('#ffffff',this)" title="White"></button>
+                <button class="chat-color-swatch demo-color-swatch" style="background:#ef4444" onclick="demoSetChatColor('#ef4444',this)" title="Red"></button>
+                <button class="chat-color-swatch demo-color-swatch" style="background:#f97316" onclick="demoSetChatColor('#f97316',this)" title="Orange"></button>
+                <button class="chat-color-swatch demo-color-swatch" style="background:#fbbf24" onclick="demoSetChatColor('#fbbf24',this)" title="Yellow"></button>
+                <button class="chat-color-swatch demo-color-swatch" style="background:#22c55e" onclick="demoSetChatColor('#22c55e',this)" title="Green"></button>
+                <button class="chat-color-swatch demo-color-swatch" style="background:#38bdf8" onclick="demoSetChatColor('#38bdf8',this)" title="Blue"></button>
+                <button class="chat-color-swatch demo-color-swatch" style="background:#a78bfa" onclick="demoSetChatColor('#a78bfa',this)" title="Purple"></button>
+                <button class="chat-color-swatch chat-color-rainbow demo-color-swatch" onclick="demoSetChatColor('rainbow',this)" title="Rainbow 🌈">🌈</button>
+              </div>
+              <div class="chat-lines" style="margin-top:8px">
+                <input id="demo-chat-input" type="text" class="input" style="width:100%;font-size:13px" placeholder="Message all players..." onkeydown="if(event.key==='Enter') demoChatSend()">
+              </div>
+              <div style="margin-top:6px;display:flex;align-items:center;gap:8px">
+                <button class="btn btn-sm btn-secondary" onclick="demoToast('Multi-line chat is available in the full StardropHost dashboard.')" title="Add another line">+</button>
+                <span style="font-size:11px;color:var(--text-muted)">add extra line...</span>
+              </div>
+              <div class="chat-compose-row" style="margin-top:6px">
+                <button class="btn btn-primary btn-sm" onclick="demoChatSend()">Send</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- SAVES -->
+          <section id="demo-page-saves" class="demo-page page">
+            <div class="card">
+              <div class="section-header">
+                <h3>Save Files</h3>
+                <div class="action-group">
+                  <button class="btn btn-primary btn-sm" onclick="demoToast('Upload a .zip save file')"><svg class="icon"><use href="#icon-package"></use></svg> Upload Save</button>
+                  <button class="btn btn-sm" onclick="demoToast('Download save...')"><svg class="icon"><use href="#icon-download"></use></svg> Download Save</button>
+                </div>
+              </div>
+              <p style="font-size:13px;color:var(--text-secondary);margin:0 0 12px;line-height:1.6">Your farm saves live here. Only one save is active at a time. Use <strong>Select</strong> to switch the active save (requires restart). <strong>Upload Save</strong> accepts a <code>.zip</code> containing a save folder.</p>
+              <div class="saves-list">
+                <div class="save-item">
+                  <div class="save-info">
+                    <div class="save-name"><svg class="icon save-name-icon"><use href="#icon-sprout"></use></svg> <span>Stardrop Farm</span> <span class="save-badge">Active</span></div>
+                    <div class="save-meta">Summer 14, Year 2 · 4.2 MB · Saved 2 mins ago</div>
+                  </div>
+                  <div class="save-actions">
+                    <button class="btn btn-sm btn-danger" onclick="demoToast('Cannot delete the active save', 'warn')"><svg class="icon"><use href="#icon-trash"></use></svg></button>
+                  </div>
+                </div>
+                <div class="save-item">
+                  <div class="save-info">
+                    <div class="save-name"><svg class="icon save-name-icon"><use href="#icon-sprout"></use></svg> <span>Riverdale Farm</span></div>
+                    <div class="save-meta">Spring 3, Year 1 · 1.1 MB · Uploaded 3 days ago</div>
+                  </div>
+                  <div class="save-actions">
+                    <button class="btn btn-sm btn-primary" onclick="demoToast('Riverdale Farm set as active — restart required', 'success')">Select</button>
+                    <button class="btn btn-sm btn-danger" onclick="demoToast('Simulated: Riverdale Farm deleted', 'error')"><svg class="icon"><use href="#icon-trash"></use></svg></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <details class="card admin-cred-details" open>
+              <summary class="section-header" style="cursor:pointer;list-style:none;display:flex;align-items:center">
+                <h3 style="margin:0;flex:1">Backups <span class="save-badge" style="margin-left:8px;font-size:11px">5</span></h3>
+                <div class="action-group" onclick="event.stopPropagation()">
+                  <button class="btn btn-primary btn-sm" onclick="demoToast('Upload a .zip backup file')"><svg class="icon"><use href="#icon-package"></use></svg> Upload Backup</button>
+                  <button class="btn btn-success btn-sm" onclick="demoToast('Backup created ✓', 'success')"><svg class="icon"><use href="#icon-saves"></use></svg> Backup Now</button>
+                </div>
+              </summary>
+              <p style="font-size:13px;color:var(--text-secondary);margin:0 0 12px;line-height:1.6">Backups are full snapshots of your entire game config — saves, preferences, and options. They are taken automatically every 24 hours and before every server stop, restart, or update. Use <strong>Backup Now</strong> before making any risky changes. Hit <strong>Restore</strong> on any backup to recover — the server will stop and you will need to restart it after.</p>
+              <div class="saves-list">
+                <div class="save-item">
+                  <div class="save-info">
+                    <div class="save-name" style="font-size:13px">stardrop-farm-auto-backup-20260407-132000.zip</div>
+                    <div class="save-meta">Auto · 6.8 MB · Today 1:20 PM</div>
+                  </div>
+                  <div class="save-actions">
+                    <button class="btn btn-sm" onclick="demoToast('Simulated: Restoring backup — server will stop', 'warn')">Restore</button>
+                    <button class="btn btn-sm btn-secondary" onclick="demoToast('Downloading backup...')">Download</button>
+                    <button class="btn btn-sm btn-danger" onclick="demoToast('Backup deleted', 'error')"><svg class="icon"><use href="#icon-trash"></use></svg></button>
+                  </div>
+                </div>
+                <div class="save-item">
+                  <div class="save-info">
+                    <div class="save-name" style="font-size:13px">stardrop-farm-pre-stop-20260406-201500.zip</div>
+                    <div class="save-meta">Pre-stop · 6.5 MB · Yesterday 8:15 PM</div>
+                  </div>
+                  <div class="save-actions">
+                    <button class="btn btn-sm" onclick="demoToast('Simulated: Restoring backup — server will stop', 'warn')">Restore</button>
+                    <button class="btn btn-sm btn-secondary" onclick="demoToast('Downloading backup...')">Download</button>
+                    <button class="btn btn-sm btn-danger" onclick="demoToast('Backup deleted', 'error')"><svg class="icon"><use href="#icon-trash"></use></svg></button>
+                  </div>
+                </div>
+                <div class="save-item">
+                  <div class="save-info">
+                    <div class="save-name" style="font-size:13px">stardrop-farm-auto-backup-20260406-090000.zip</div>
+                    <div class="save-meta">Auto · 6.3 MB · Yesterday 9:00 AM</div>
+                  </div>
+                  <div class="save-actions">
+                    <button class="btn btn-sm" onclick="demoToast('Simulated: Restoring backup — server will stop', 'warn')">Restore</button>
+                    <button class="btn btn-sm btn-secondary" onclick="demoToast('Downloading backup...')">Download</button>
+                    <button class="btn btn-sm btn-danger" onclick="demoToast('Backup deleted', 'error')"><svg class="icon"><use href="#icon-trash"></use></svg></button>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </section>
+
+          <!-- MODS -->
+          <section id="demo-page-mods" class="demo-page page">
+            <div class="card" style="margin-bottom:16px">
+              <div class="section-header">
+                <h3>Bundled Mods</h3>
+                <span style="font-size:0.8rem;opacity:0.6">SMAPI v4.5.2</span>
+              </div>
+              <p style="font-size:13px;color:var(--text-secondary);margin:0 0 12px;line-height:1.6">These mods are built into StardropHost and are required for the server to function. They cannot be removed.</p>
+              <div class="mods-list">
+                <div class="mod-item">
+                  <div class="mod-info">
+                    <div class="mod-name">Console Commands <span class="mod-badge">Bundled</span></div>
+                    <div class="mod-meta">v4.5.2 · SMAPI · Adds SMAPI console commands that let you manipulate the game.</div>
+                  </div>
+                </div>
+                <div class="mod-item">
+                  <div class="mod-info">
+                    <div class="mod-name">Save Backup <span class="mod-badge">Bundled</span></div>
+                    <div class="mod-meta">v4.5.2 · SMAPI · Automatically backs up all your saves once per day into its folder.</div>
+                  </div>
+                </div>
+                <div class="mod-item">
+                  <div class="mod-info">
+                    <div class="mod-name">StardropDashboard <span class="mod-badge">Bundled</span></div>
+                    <div class="mod-meta">v1.0.0 · StardropHost · Writes live game state to live-status.json every 10 seconds for the StardropHost web panel.</div>
+                  </div>
+                </div>
+                <div class="mod-item">
+                  <div class="mod-info">
+                    <div class="mod-name">StardropHost.Dependencies <span class="mod-badge">Bundled</span></div>
+                    <div class="mod-meta">v1.0.0 · StardropHost · Combined server management mod for StardropHost. Handles game loading, host hiding, headless server operation, and new farm creation.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="section-header">
+                <h3>User Installed Mods</h3>
+                <button class="btn btn-primary btn-sm" onclick="demoToast('Upload a .zip mod file')"><svg class="icon"><use href="#icon-package"></use></svg> Upload Mod</button>
+              </div>
+              <p style="font-size:13px;color:var(--text-secondary);margin:0 0 12px;line-height:1.6">Most Client-side mods (visual, UI, or input mods) will work but all of the connected clients must also have the mod/s installed on their system.<br>Many mods are un-tested, but give it a try. <strong>(Make a Save Backup)</strong><br><em>*Some mods may cause server issues or not work at all.</em></p>
+              <div class="mods-list">
+                <div class="empty-state">No user mods installed</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- CONSOLE -->
+          <section id="demo-page-terminal" class="demo-page page console-page">
+            <div class="card console-card">
+              <div class="console-divider" style="margin:0 0 8px;border-top:none;padding-top:0">
+                <span>SMAPI Console</span>
+              </div>
+              <div id="demo-term-output" class="terminal-output console-term-output" style="height:160px">
+                <div class="terminal-hint">Connecting to SMAPI… Type commands below — this is not a Linux shell.</div>
+                <div style="color:var(--text-secondary)">[18:44:29 INFO  StardropHost.Dependencies] [CabinStack] Building 16 cabin(s) to reach target of 16.</div>
+                <div style="color:var(--text-secondary)">[18:44:29 INFO  StardropHost.Dependencies] [StardropHost.Dependencies] Server ready for connections.</div>
+                <div style="color:var(--text-secondary)">[18:44:29 INFO  StardropHost.Dependencies] [CropSaver] Loaded 0 tracked crop(s).</div>
+                <div style="color:var(--text-secondary)">[18:44:29 TRACE game] Warping to Desert</div>
+                <div style="color:var(--text-secondary)">[18:50:24 TRACE game] Sending available farmhands to connection ID L_3239876009723315914</div>
+                <div style="color:var(--text-secondary)">[18:50:32 TRACE SMAPI] Received connection for vanilla player -1282051730110708346.</div>
+                <div style="color:var(--text-secondary)">[18:50:32 TRACE game] Approved request for farmhand -1282051730110708346</div>
+                <div style="color:var(--text-secondary)">[18:50:33 DEBUG StardropHost.Dependencies] [CabinStack] Cabin for peer -1282051730110708346 shown at (52,14) client-side.</div>
+                <div style="color:var(--text-secondary)">[19:05:08 INFO  StardropHost.Dependencies] [HeadlessServer] Auto-sleep at 2600.</div>
+                <div style="color:var(--text-secondary)">[19:05:08 INFO  StardropHost.Dependencies] [HostBot] Going to bed at FarmHouse (9,9).</div>
+              </div>
+              <div class="terminal-input-row">
+                <input type="text" id="demo-term-input" class="input" placeholder="Type a SMAPI command (try: help, list)..." onkeydown="if(event.key==='Enter') demoConsoleSend()">
+                <button class="btn btn-primary" type="button" onclick="demoConsoleSend()">Send</button>
+              </div>
+              <div class="console-divider">
+                <div class="log-filters">
+                  <button class="log-filter demo-log-filter active" type="button" onclick="demoConsoleFilter('Game', this)">Game</button>
+                  <button class="log-filter demo-log-filter" type="button" onclick="demoConsoleFilter('Errors', this)">Errors</button>
+                  <button class="log-filter demo-log-filter" type="button" onclick="demoConsoleFilter('SMAPI', this)">SMAPI</button>
+                  <button class="log-filter demo-log-filter" type="button" onclick="demoConsoleFilter('All', this)">All</button>
+                </div>
+                <div style="display:flex;gap:6px;align-items:center">
+                  <input type="text" class="input input-sm" placeholder="Search..." oninput="demoToast('Searching: ' + this.value)">
+                  <div class="log-dl-dropdown" style="position:relative">
+                    <button class="btn btn-sm btn-icon" type="button" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'" title="Download logs">
+                      <svg class="icon"><use href="#icon-download"></use></svg>
+                      <svg class="icon" style="width:10px;height:10px"><use href="#icon-chevron-down"></use></svg>
+                    </button>
+                    <div class="log-dl-menu" style="display:none;position:absolute;right:0;bottom:calc(100% + 4px);background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:4px;min-width:130px;z-index:10">
+                      <button type="button" style="display:block;width:100%;text-align:left;padding:6px 10px;font-size:12px;background:none;border:none;color:var(--text-primary);cursor:pointer;border-radius:4px" onclick="demoToast('Downloading current view...')">Current View</button>
+                      <button type="button" style="display:block;width:100%;text-align:left;padding:6px 10px;font-size:12px;background:none;border:none;color:var(--text-primary);cursor:pointer;border-radius:4px" onclick="demoToast('Downloading SMAPI log...')">SMAPI</button>
+                      <button type="button" style="display:block;width:100%;text-align:left;padding:6px 10px;font-size:12px;background:none;border:none;color:var(--text-primary);cursor:pointer;border-radius:4px" onclick="demoToast('Downloading Game Update log...')">Game Update</button>
+                      <button type="button" style="display:block;width:100%;text-align:left;padding:6px 10px;font-size:12px;background:none;border:none;color:var(--text-primary);cursor:pointer;border-radius:4px" onclick="demoToast('Downloading Server log...')">Server</button>
+                      <button type="button" style="display:block;width:100%;text-align:left;padding:6px 10px;font-size:12px;background:none;border:none;color:var(--text-primary);cursor:pointer;border-radius:4px" onclick="demoToast('Downloading Setup log...')">Server Setup</button>
+                    </div>
+                  </div>
+                  <button class="btn btn-sm btn-icon" onclick="document.getElementById('demo-log-output').innerHTML='';demoToast('Log display cleared')" title="Clear display"><svg class="icon"><use href="#icon-trash"></use></svg></button>
+                </div>
+              </div>
+              <div id="demo-log-output" class="log-output console-log-output">
+                <div class="log-line debug">[2026-04-07 18:54:52] [18:54:33 TRACE game] Successfully loaded ContentHashes.json containing 3560 file(s);</div>
+                <div class="log-line debug">[2026-04-07 18:54:52] [18:54:33 TRACE game] EnsureManifestInitialized() finished, elapsed = '00:00:00.0084244'</div>
+                <div class="log-line debug">[2026-04-07 18:54:52] [18:54:34 TRACE game] setGameMode( 'playingGameMode (3)' )</div>
+                <div class="log-line debug">[2026-04-07 18:54:52] [18:54:34 TRACE game] Starting server. Protocol version: 1.6.15</div>
+                <div class="log-line debug">[2026-04-07 18:54:52] [18:54:34 TRACE game] Starting LAN server</div>
+                <div class="log-line debug">[2026-04-07 18:54:52] [18:54:36 TRACE game] Window_ClientSizeChanged(); Window.ClientBounds={X:0 Y:0 Width:800 Height:600}</div>
+                <div class="log-line debug">[2026-04-07 18:54:52] [18:54:36 TRACE game] SaveGame.Save() called.</div>
+                <div class="log-line debug">[2026-04-07 18:54:52] [18:54:36 TRACE game] Saving without compression...</div>
+                <div class="log-line debug">[2026-04-07 18:54:52] [18:54:38 TRACE game] SaveGame.Save() completed without exceptions.</div>
+                <div class="log-line debug">[2026-04-07 18:54:52] [18:54:39 TRACE game] Warping to Desert</div>
+                <div class="log-line debug">[2026-04-07 18:54:52] [18:54:40 TRACE game] Warping to Desert</div>
+                <div class="log-line debug">[2026-04-07 18:55:22] [18:55:02 TRACE game] Sending available farmhands to connection ID L_-2588075101791555982</div>
+                <div class="log-line debug">[2026-04-07 18:55:22] [18:55:08 TRACE game] Approved request for farmhand 5868778512659204619</div>
+                <div class="log-line debug">[2026-04-07 18:55:22] [18:55:09 TRACE game] Warping to Desert</div>
+                <div class="log-line debug">[2026-04-07 19:02:52] [19:02:35 TRACE game] Game has only local clients.</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- REMOTE -->
+          <section id="demo-page-remote" class="demo-page page">
+            <div class="card" style="margin-bottom:16px">
+              <h3>Remote Access</h3>
+              <p style="font-size:13px;color:var(--text-secondary);margin:0 0 8px;line-height:1.6">Connect friends directly with a co-op IP or domain name — no in-game invite codes required.</p>
+              <ul style="margin:0;padding-left:18px;font-size:13px;color:var(--text-secondary);line-height:1.8">
+                <li>Access your Stardew game or StardropHost dashboard from anywhere</li>
+                <li>Host multiple game instances on one VM easily (depends on the service used)</li>
+                <li>Recommended: <strong style="color:var(--text-primary)">playit.gg</strong> — tested and working. See the setup guide below.</li>
+                <li>Other services should work by following their own setup guides</li>
+              </ul>
+            </div>
+            <div class="card" style="margin-bottom:16px">
+              <h3>Service Status</h3>
+              <div id="demo-remote-configured">
+                <div style="margin-bottom:14px">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+                    <span class="status-dot running"></span>
+                    <span style="font-weight:600">playit</span>
+                    <span style="color:#22c55e;font-weight:600;font-size:13px">Active</span>
+                    <span style="color:var(--text-muted);font-size:13px">— running</span>
+                  </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <button class="btn" type="button" onclick="demoToast('playit tunnel paused', 'warn')">Pause</button>
+                  <button class="btn" type="button" style="color:#ef4444;border-color:#ef4444" onclick="demoToast('Simulated: tunnel stopped and removed', 'error')">Stop &amp; Remove</button>
+                </div>
+                <div style="margin-top:10px">
+                  <button class="btn" type="button" onclick="demoToast('Enter panel password to view config')">View Config</button>
+                </div>
+              </div>
+            </div>
+            <div class="card" style="margin-bottom:16px">
+              <h3 style="margin-bottom:12px">Connection Addresses</h3>
+              <div style="display:flex;flex-direction:column;gap:10px;font-size:13px">
+                <div style="font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.06em">Co-Op Game</div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <input id="demo-remote-game" class="input" type="text" value="198.51.100.42:24642" placeholder="e.g. 12.34.56.78:12345" style="width:280px;font-size:13px">
+                  <button class="btn btn-sm btn-icon" onclick="document.getElementById('demo-remote-game').value='';demoToast('Cleared')" title="Clear">×</button>
+                  <button class="btn btn-sm btn-secondary" style="display:none" onclick="demoToast('Address saved ✓', 'success')">Save</button>
+                  <button class="btn btn-sm btn-icon" onclick="demoToast('Address copied! ✓', 'success')" title="Copy"><svg class="icon"><use href="#icon-copy"></use></svg></button>
+                </div>
+                <div style="font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-top:4px">Dashboard</div>
+                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+                  <input id="demo-remote-dash" class="input" type="text" value="stardropfarm-panel.joinmy.game" placeholder="e.g. yourname.playit.plus:54321" style="width:280px;font-size:13px">
+                  <button class="btn btn-sm btn-icon" onclick="document.getElementById('demo-remote-dash').value='';demoToast('Cleared')" title="Clear">×</button>
+                  <button class="btn btn-sm btn-secondary" style="display:none" onclick="demoToast('Address saved ✓', 'success')">Save</button>
+                  <button class="btn btn-sm btn-icon" onclick="demoToast('Address copied! ✓', 'success')" title="Copy"><svg class="icon"><use href="#icon-copy"></use></svg></button>
+                </div>
+              </div>
+            </div>
+            <details class="card remote-guide" style="margin-bottom:16px">
+              <summary>
+                playit.gg Setup Guide
+                <span class="remote-badge">RECOMMENDED</span>
+                <span style="color:var(--text-muted);font-size:12px;font-weight:400">Paid / Free — No client setup needed</span>
+              </summary>
+              <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px;font-size:13px;color:var(--text-secondary);line-height:1.75">
+                <ul style="margin:0 0 6px 18px;padding:0">
+                  <li>No client setup needed — friends join directly with an address</li>
+                  <li>Multiplatform — PC, Mobile, Console <em style="color:var(--text-muted)">(Console untested)</em></li>
+                </ul>
+                <p style="margin:8px 0 4px">Premium is <strong>highly recommended</strong>. Free tier works but has no TCP — StardropHost/Stardew works on UDP (PC &amp; Mobile only). <strong>Remote Dashboard access requires a TCP tunnel (Premium only).</strong></p>
+              </div>
+              <details class="remote-sub">
+                <summary>Account Setup</summary>
+                <ol class="remote-steps">
+                  <li>Sign up for an account at <a href="https://playit.gg" target="_blank" rel="noopener noreferrer">playit.gg</a></li>
+                  <li>Don't set up an agent yet — press <strong>"Exit Wizard"</strong> if prompted</li>
+                  <li>Purchase a Premium subscription (~$5/mo) for TCP support (recommended)</li>
+                  <li>Go to <strong>Setup</strong> → <strong>"New Account Wizard"</strong> → select <strong>Docker</strong></li>
+                  <li>Continue to <strong>Agent Setup</strong> below</li>
+                </ol>
+              </details>
+              <details class="remote-sub">
+                <summary>Agent Setup</summary>
+                <ol class="remote-steps">
+                  <li>In playit.gg, go to <strong>Agents → Add Agent</strong></li>
+                  <li>Name your agent (e.g. <code>StardropHost-1</code>) then press <strong>Next</strong></li>
+                  <li>Copy the <strong>full docker compose snippet</strong> shown on the page</li>
+                  <li>Paste it into the <strong>Compose Entry</strong> section and click <strong>Apply &amp; Connect</strong></li>
+                  <li>The agent will show <strong>Connected</strong> in playit.gg once running</li>
+                </ol>
+              </details>
+              <details class="remote-sub">
+                <summary>Tunnel Setup</summary>
+                <ol class="remote-steps">
+                  <li>Click <strong>Tunnels</strong> → <strong>Create Tunnel</strong></li>
+                  <li>Name it, select type <strong>UDP</strong>, port count <strong>1</strong></li>
+                  <li>For <strong>Local IP &amp; Port</strong>: use your server's <strong>LAN IP</strong> and port <code>24642</code></li>
+                  <li>Select the region closest to you, then <strong>Create Tunnel</strong></li>
+                  <li>Copy the generated IP &amp; Port — share with friends to enter in Stardew Valley's co-op join screen</li>
+                </ol>
+              </details>
+              <details class="remote-sub">
+                <summary>Remote Dashboard Setup <span style="font-size:11px;color:var(--text-muted);font-weight:400;margin-left:6px">TCP — Premium required</span></summary>
+                <ol class="remote-steps">
+                  <li>In playit.gg → <strong>Tunnels → Create Tunnel</strong></li>
+                  <li>Select type <strong>TCP</strong>, port count <strong>1</strong></li>
+                  <li>For <strong>Local IP &amp; Port</strong>: use your server's <strong>LAN IP</strong> and port <code>18642</code></li>
+                  <li>Select your agent, then <strong>Create Tunnel</strong></li>
+                  <li>Access your dashboard remotely at the generated domain and port</li>
+                </ol>
+              </details>
+            </details>
+            <details class="card admin-cred-details" style="margin-bottom:16px" open>
+              <summary>Compose Entry</summary>
+              <div style="padding-top:12px">
+                <p style="font-size:13px;color:var(--text-secondary);margin:0 0 12px;line-height:1.6">
+                  Paste a <code>docker-compose</code> snippet from your tunnel provider and click <strong>Apply &amp; Connect</strong>.
+                  The service will start automatically and status will update above.
+                </p>
+                <textarea class="input" rows="6" placeholder="Paste your docker-compose snippet here..." style="width:100%;font-family:monospace;font-size:12px;resize:vertical;line-height:1.5"></textarea>
+                <div style="margin-top:10px">
+                  <button class="btn btn-primary" type="button" onclick="demoToast('Simulated: Applying compose config and connecting...', 'success')">Apply &amp; Connect</button>
+                </div>
+              </div>
+            </details>
+            <details class="card remote-guide" style="margin-bottom:16px">
+              <summary>Other Options</summary>
+              <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px;font-size:13px;color:var(--text-secondary);line-height:1.75">
+                <strong style="color:var(--text-primary);display:block;margin-bottom:6px">No client setup needed — similar to playit.gg, known to work for gaming:</strong>
+                <ul style="margin:0 0 12px 18px;padding:0">
+                  <li><strong>Tailscale Funnel</strong> — free, good latency</li>
+                  <li><strong>Cloudflare Tunnel</strong> — free, TCP/UDP, no port forwarding</li>
+                  <li><strong>ngrok</strong> — free tier available, easy setup</li>
+                </ul>
+                <strong style="color:var(--text-primary);display:block;margin-bottom:6px">Client setup needed — requires friends to install an app:</strong>
+                <ul style="margin:0 0 4px 18px;padding:0">
+                  <li><strong>Tailscale</strong> — free, excellent latency, requires client</li>
+                  <li><strong>ZeroTier</strong> — free, virtual LAN, requires client</li>
+                </ul>
+              </div>
+            </details>
+            <details class="card remote-guide" style="margin-bottom:16px">
+              <summary>Advanced Docker Config <span class="remote-badge" style="background:rgba(239,68,68,0.15);color:#ef4444;border-color:rgba(239,68,68,0.3)">ADVANCED</span></summary>
+              <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:14px;font-size:13px;color:var(--text-secondary);line-height:1.75">
+                <p style="margin:0 0 10px">For services that need to run alongside StardropHost but aren't tunnel providers — for example Certbot (HTTPS), a reverse proxy, or other infrastructure tools. These are added directly to your <code>docker-compose.yml</code> via SSH on your host machine.</p>
+                <p style="margin:0 0 10px;padding:10px 12px;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:8px;color:var(--text-primary)">⚠ Advanced — modifying <code>docker-compose.yml</code> incorrectly can break your stack. Take a backup first.</p>
+                <p style="margin:0;color:var(--text-muted);font-style:italic">Advanced docker features coming to the dashboard soon — no more SSH required.</p>
+              </div>
+            </details>
+          </section>
+
+          <!-- CONFIG -->
+          <section id="demo-page-config" class="demo-page page">
+
+            <!-- SERVER -->
+            <div class="card config-group">
+              <div class="config-group-title">Server</div>
+              <div class="config-item">
+                <div><div class="config-label">Server Status</div></div>
+                <div class="config-value" style="gap:8px">
+                  <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);font-weight:500"><span class="status-dot running"></span>Running</span>
+                  <button class="btn btn-sm btn-danger" onclick="demoToast('Simulated: stopping server...', 'error')">Stop Server</button>
+                  <button class="btn btn-sm btn-warning" onclick="demoToast('Simulated: restarting server...', 'warn')">Restart</button>
+                </div>
+              </div>
+              <div class="config-item">
+                <div><div class="config-label">Remote Status</div></div>
+                <div class="config-value" style="gap:8px">
+                  <span style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text-secondary);font-weight:500"><span class="status-dot running"></span>Connected</span>
+                  <button class="btn btn-sm btn-secondary" onclick="demoToast('Simulated: pausing remote...')">Pause</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- UPDATES -->
+            <details class="card admin-cred-details">
+              <summary>Updates</summary>
+              <div style="padding-top:12px">
+                <div class="config-item">
+                  <div><div class="config-label">Update check interval</div><div class="config-help">How often to check for panel and game updates (hours). Leave empty to disable.</div></div>
+                  <div class="config-value">
+                    <input type="number" class="input" value="24" style="width:80px">
+                    <button class="btn btn-sm btn-primary" onclick="demoToast('Saved ✓', 'success')">Save</button>
+                  </div>
+                </div>
+                <div style="padding:6px 0">
+                  <button class="btn btn-secondary" onclick="demoToast('Checking for updates...')">Check Now</button>
+                </div>
+              </div>
+            </details>
+
+            <!-- BACKUP -->
+            <details class="card admin-cred-details">
+              <summary>Backup</summary>
+              <div style="padding-top:12px">
+                <div class="config-item">
+                  <div><div class="config-label">Auto Backup</div></div>
+                  <div class="config-value">
+                    <label class="toggle"><input type="checkbox" checked onchange="demoToast('Auto backup: ' + (this.checked?'enabled':'disabled'))"><span class="toggle-slider"></span></label>
+                  </div>
+                </div>
+                <div class="config-item">
+                  <div><div class="config-label">Max Backups</div></div>
+                  <div class="config-value">
+                    <input type="number" class="input" value="7" min="1" style="width:80px">
+                    <button class="btn btn-sm btn-primary" onclick="demoToast('Saved ✓', 'success')">Save</button>
+                  </div>
+                </div>
+                <div class="config-item">
+                  <div><div class="config-label">Backup Frequency (hours)</div><div class="config-help">How often to back up saves. 24 = once a day.</div></div>
+                  <div class="config-value">
+                    <input type="number" class="input" value="24" min="1" max="24" style="width:80px">
+                    <button class="btn btn-sm btn-primary" onclick="demoToast('Saved ✓', 'success')">Save</button>
+                  </div>
+                </div>
+              </div>
+            </details>
+
+            <!-- PERFORMANCE -->
+            <details class="card admin-cred-details">
+              <summary>Performance</summary>
+              <div style="padding-top:12px">
+                <div class="config-item">
+                  <div><div class="config-label">CPU Limit</div></div>
+                  <div class="config-value">
+                    <select class="input" style="width:140px" onchange="demoToast('Saved ✓', 'success')">
+                      <option selected>No limit</option><option>1 core</option><option>2 cores</option><option>4 cores</option><option>8 cores</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="config-item">
+                  <div><div class="config-label">Memory Limit</div></div>
+                  <div class="config-value">
+                    <select class="input" style="width:140px" onchange="demoToast('Saved ✓', 'success')">
+                      <option selected>No limit</option><option>1 GB</option><option>2 GB</option><option>4 GB</option><option>8 GB</option><option>16 GB</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </details>
+
+            <!-- ADVANCED SETTINGS -->
+            <details class="advanced-details">
+              <summary>Advanced Settings <span style="font-size:12px;color:var(--text-muted);font-weight:400;margin-left:6px">VNC · Stability · Monitoring · Admin</span></summary>
+              <div style="padding-top:12px;display:flex;flex-direction:column;gap:12px">
+
+                <!-- VNC & Display -->
+                <div class="card">
+                  <h3>VNC &amp; Display Settings</h3>
+                  <div class="config-item">
+                    <div><div class="config-label">VNC Password</div><div class="config-help">Max 8 characters</div></div>
+                    <div class="config-value">
+                      <input type="password" class="input" value="stardew1" maxlength="8" style="width:140px">
+                      <button class="btn btn-sm btn-primary" onclick="demoToast('VNC password saved ✓', 'success')">Save</button>
+                    </div>
+                  </div>
+                  <div class="config-item">
+                    <div><div class="config-label">Disable Rendering when VNC is off</div><div class="config-help">Turns off the display server when VNC is not active. Saves CPU.</div></div>
+                    <div class="config-value">
+                      <label class="toggle"><input type="checkbox" checked onchange="demoToast('Rendering: ' + (this.checked?'disabled when idle':'always on'))"><span class="toggle-slider"></span></label>
+                    </div>
+                  </div>
+                  <div class="config-item">
+                    <div><div class="config-label">Display Resolution</div></div>
+                    <div class="config-value">
+                      <select class="input" style="width:220px" onchange="demoToast('Saved ✓', 'success')">
+                        <option>800×600 @ 30 Hz (Low Performance)</option>
+                        <option>1280×720 @ 30 Hz (HD)</option>
+                        <option selected>1280×720 @ 60 Hz (HD)</option>
+                        <option>1920×1080 @ 30 Hz (Full HD)</option>
+                        <option>1920×1080 @ 60 Hz (Full HD)</option>
+                        <option>2560×1440 @ 60 Hz (QHD)</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="config-item">
+                    <div><div class="config-label">Target FPS</div><div class="config-help">Cap the game frame rate. Leave blank for uncapped.</div></div>
+                    <div class="config-value">
+                      <input type="number" class="input" placeholder="Uncapped" style="width:100px">
+                      <button class="btn btn-sm btn-primary" onclick="demoToast('Saved ✓', 'success')">Save</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Stability -->
+                <div class="card config-group">
+                  <div class="config-group-title">Stability</div>
+                  <div class="config-item">
+                    <div><div class="config-label">Auto Crash Restart</div></div>
+                    <div class="config-value">
+                      <label class="toggle"><input type="checkbox" checked onchange="demoToast('Auto restart: ' + (this.checked?'on':'off'))"><span class="toggle-slider"></span></label>
+                    </div>
+                  </div>
+                  <div class="config-item">
+                    <div><div class="config-label">Max Restarts</div></div>
+                    <div class="config-value">
+                      <input type="number" class="input" value="3" min="1" style="width:80px">
+                      <button class="btn btn-sm btn-primary" onclick="demoToast('Saved ✓', 'success')">Save</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Monitoring -->
+                <div class="card config-group">
+                  <div class="config-group-title">Monitoring</div>
+                  <div class="config-item">
+                    <div><div class="config-label">Log Monitor</div></div>
+                    <div class="config-value">
+                      <label class="toggle"><input type="checkbox" checked onchange="demoToast('Log monitor: ' + (this.checked?'on':'off'))"><span class="toggle-slider"></span></label>
+                    </div>
+                  </div>
+                  <div class="config-item">
+                    <div><div class="config-label">Metrics Port</div></div>
+                    <div class="config-value">
+                      <input type="number" class="input" value="9090" style="width:100px">
+                      <button class="btn btn-sm btn-primary" onclick="demoToast('Saved ✓', 'success')">Save</button>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Change Admin Credentials -->
+                <details class="card admin-cred-details" id="demo-admin-cred-card">
+                  <summary>Change Admin Credentials</summary>
+                  <div style="margin-top:14px">
+                    <div style="margin-bottom:10px">
+                      <label class="config-label">New Username <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+                      <div style="margin-top:6px"><input type="text" class="input" placeholder="Leave blank to keep current" style="width:100%;max-width:300px"></div>
+                    </div>
+                    <div style="margin-bottom:10px">
+                      <label class="config-label">Current Password</label>
+                      <div style="margin-top:6px"><input type="password" class="input" placeholder="Required to confirm changes" style="width:100%;max-width:300px"></div>
+                    </div>
+                    <div style="margin-bottom:10px">
+                      <label class="config-label">New Password</label>
+                      <div style="margin-top:6px"><input type="password" class="input" placeholder="Minimum 8 characters" style="width:100%;max-width:300px"></div>
+                    </div>
+                    <div style="margin-bottom:14px">
+                      <label class="config-label">Confirm New Password</label>
+                      <div style="margin-top:6px"><input type="password" class="input" placeholder="Re-enter new password" style="width:100%;max-width:300px"></div>
+                    </div>
+                    <div style="font-size:12px;color:var(--text-muted);margin-bottom:14px;padding:10px 12px;background:var(--bg-tertiary);border-radius:6px;line-height:1.7">
+                      <div style="font-weight:600;margin-bottom:2px">Requirements</div>
+                      <div>• Username: at least 3 characters (letters, numbers, _ . -)</div>
+                      <div>• Password: minimum 8 characters</div>
+                      <div>• New passwords must match</div>
+                    </div>
+                    <button class="btn btn-primary" type="button" onclick="demoToast('Credentials updated ✓', 'success')">Update Credentials</button>
+                  </div>
+                </details>
+
+              </div>
+            </details>
+
+            <!-- DANGER ZONE -->
+            <details class="card admin-cred-details danger-zone-details" style="margin-top:16px">
+              <summary>Danger Zone</summary>
+              <div style="margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+                <div>
+                  <div style="font-weight:500;margin-bottom:4px">Delete Farm &amp; Restart Setup</div>
+                  <div style="font-size:13px;color:var(--text-secondary)">Permanently deletes all save data and relaunches the setup wizard. Game files and mods are kept.</div>
+                </div>
+                <button class="btn" style="color:#ef4444;border-color:#ef4444;white-space:nowrap;flex-shrink:0" onclick="demoToast('⚠ In the real panel this permanently deletes ALL saves', 'error')">Delete Farm &amp; Restart Setup</button>
+              </div>
+            </details>
+
+            <!-- FEEDBACK & SUPPORT -->
+            <div class="card" style="margin-top:16px">
+              <h3>Feedback &amp; Support</h3>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px">
+                <div>
+                  <div style="font-size:13px;color:var(--text-secondary);margin-bottom:6px">Found a bug or have a feature request? Open an issue on GitHub.</div>
+                  <div style="font-size:12px;color:var(--text-muted)">Please select the appropriate label when submitting — <strong style="color:var(--text-secondary)">Bug</strong> or <strong style="color:var(--text-secondary)">Feature Request</strong>.</div>
+                </div>
+                <button class="btn btn-sm" type="button" onclick="demoToast('Opens GitHub issues in the real panel')">
+                  <svg class="icon"><use href="#icon-github"></use></svg>
+                  Report / Request
+                </button>
+              </div>
+              <hr style="border:none;border-top:1px solid var(--border);margin:0 0 16px">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap">
+                <div style="font-size:13px;color:var(--text-secondary)">Join the StardropHost Discord for support, updates and community.</div>
+                <button class="btn btn-sm btn-primary" type="button" onclick="demoToast('Opens Discord invite in the real panel')">Join Discord</button>
+              </div>
+            </div>
+
+          </section>
+
+          <!-- SERVERS -->
+          <section id="demo-page-servers" class="demo-page page">
+            <!-- Current instance -->
+            <div class="card" style="margin-bottom:12px">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+                <div>
+                  <div style="font-size:11px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">Current Instance</div>
+                  <div style="font-weight:600;font-size:15px;margin-bottom:2px">Stardrop Farm</div>
+                  <div style="font-size:12px;color:var(--text-muted)">Port 18642</div>
+                </div>
+              </div>
+            </div>
+            <!-- Manage toolbar -->
+            <div style="display:flex;justify-content:flex-end;align-items:center;gap:8px;margin-bottom:12px">
+              <button class="btn btn-sm btn-secondary" type="button" onclick="demoToast('Manage: Install or Edit instances')">Manage ▾</button>
+            </div>
+            <!-- Peer: online with remote alias -->
+            <div class="card" style="margin-bottom:12px">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+                <div style="min-width:0">
+                  <div style="font-weight:600;font-size:15px;margin-bottom:4px">Riverdale Farm</div>
+                  <div style="display:flex;align-items:flex-start;gap:16px">
+                    <div>
+                      <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+                        <span class="status-dot running"></span>
+                        <span style="font-size:12px;color:#22c55e">Online</span>
+                        <span style="font-size:12px;color:var(--text-muted)">· 1 player</span>
+                      </div>
+                      <div style="font-size:11px;color:var(--text-muted)">192.168.0.160</div>
+                      <div style="font-size:11px;color:var(--text-muted)">Port 18643</div>
+                    </div>
+                    <div>
+                      <div style="display:flex;align-items:center;gap:5px;margin-bottom:2px">
+                        <span class="notif-dot"></span>
+                        <span style="font-size:12px;color:#ef4444">Chat</span>
+                      </div>
+                      <div style="font-size:11px;color:var(--text-muted)">2m ago</div>
+                    </div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+                  <button class="btn btn-sm btn-primary" type="button" onclick="demoToast('Opening Riverdale Farm panel...')">Connect</button>
+                </div>
+              </div>
+              <div style="margin-top:10px;display:flex;align-items:center;gap:6px">
+                <span style="font-size:11px;color:var(--text-muted);white-space:nowrap;flex-shrink:0">Remote alias</span>
+                <input class="input" type="text" style="width:220px;flex-shrink:0;font-size:12px;padding:4px 8px;height:28px" placeholder="http://host.playit.plus:1049" value="riverdale-panel.joinmy.game" oninput="demoToast('Alias updated — click Save to apply')" onkeydown="if(event.key==='Enter')demoToast('Alias saved ✓','success')">
+              </div>
+            </div>
+            <!-- Peer: offline, no alias (auto-discovered) -->
+            <div class="card" style="margin-bottom:12px">
+              <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px">
+                <div style="min-width:0">
+                  <div style="font-weight:600;font-size:15px;margin-bottom:4px">Connect to Setup</div>
+                  <div style="display:flex;align-items:flex-start;gap:16px">
+                    <div>
+                      <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
+                        <span class="status-dot offline"></span>
+                        <span style="font-size:12px;color:var(--text-muted)">—</span>
+                      </div>
+                      <div style="font-size:11px;color:var(--text-muted)">192.168.0.160</div>
+                      <div style="font-size:11px;color:var(--text-muted)">Port 18644</div>
+                    </div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+                  <button class="btn btn-sm btn-primary" type="button" onclick="demoToast('Connecting to new instance...')">Connect</button>
+                </div>
+              </div>
+              <div style="margin-top:10px;display:flex;align-items:center;gap:6px">
+                <span style="font-size:11px;color:var(--text-muted);white-space:nowrap;flex-shrink:0">Remote alias</span>
+                <input class="input" type="text" style="width:220px;flex-shrink:0;font-size:12px;padding:4px 8px;height:28px" placeholder="http://host.playit.plus:1049" value="" oninput="demoToast('Alias updated — click Save to apply')" onkeydown="if(event.key==='Enter')demoToast('Alias saved ✓','success')">
+              </div>
+            </div>
+          </section>
+
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
