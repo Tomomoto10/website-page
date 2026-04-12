@@ -244,6 +244,18 @@ body {
   margin-bottom: 16px;
 }
 
+.features-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.features-grid .card {
+  flex: 0 0 calc(25% - 12px);
+  min-width: 0;
+}
+
 .stat-card {
   display: flex;
   align-items: center;
@@ -1181,6 +1193,7 @@ select.form-input {
   #content, #demo-content { margin-left: 0; }
   .mobile-only { display: block; }
   .cards-grid { grid-template-columns: repeat(2, 1fr); }
+  .features-grid .card { flex: 0 0 calc(50% - 8px); }
   .logs-toolbar { flex-direction: column; }
   .log-filters { flex-wrap: wrap; }
   .action-buttons { flex-direction: column; }
@@ -1191,6 +1204,7 @@ select.form-input {
 
 @media (max-width: 480px) {
   .cards-grid { grid-template-columns: 1fr; }
+  .features-grid .card { flex: 0 0 100%; }
   #page-container { padding: 12px; }
 }
 
