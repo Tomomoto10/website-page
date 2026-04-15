@@ -869,22 +869,6 @@
               </div>
             </div>
             <details class="card admin-cred-details">
-              <summary>Community Center
-                <span style="margin-left:auto;display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);font-weight:400">
-                  <span>35% · 2/6 rooms</span>
-                  <span class="cc-room-bar" style="width:80px"><span class="cc-room-fill" style="width:35%"></span></span>
-                </span>
-              </summary>
-              <div style="padding-top:8px;display:flex;flex-direction:column;gap:8px;font-size:13px">
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><span>Pantry</span><span style="color:#22c55e;font-weight:600">✓ Complete</span></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><span>Crafts Room</span><span style="color:#22c55e;font-weight:600">✓ Complete</span></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><span>Fish Tank</span><span style="color:var(--accent-warn);font-weight:600">3 / 5 bundles</span></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><span>Boiler Room</span><span style="color:var(--accent-warn);font-weight:600">2 / 3 bundles</span></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><span>Bulletin Board</span><span style="color:var(--text-secondary)">1 / 6 bundles</span></div>
-                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><span>Vault</span><span style="color:var(--text-secondary)">0 / 4 bundles</span></div>
-              </div>
-            </details>
-            <details class="card admin-cred-details">
               <summary>World Controls</summary>
               <div style="padding-top:10px">
                 <p style="font-size:13px;color:var(--text-secondary);margin:0 0 10px">Commands sent directly to the running game via SMAPI.</p>
@@ -896,8 +880,14 @@
                   </div>
                   <div class="admin-cmd-row">
                     <span class="admin-cmd-label">Set Time</span>
-                    <input type="number" class="form-input" placeholder="e.g. 1300 (1pm)" style="width:150px" id="demo-set-time">
+                    <input type="number" class="form-input" placeholder="0600–2600" style="width:150px" id="demo-set-time">
                     <button class="btn btn-sm btn-primary" onclick="demoToast('Time updated ✓', 'success')">Set</button>
+                  </div>
+                  <div class="admin-cmd-row">
+                    <span class="admin-cmd-label">Time Shortcuts</span>
+                    <button class="btn btn-sm" onclick="demoToast('+10 minutes ✓', 'success')">+10 Min</button>
+                    <button class="btn btn-sm" onclick="demoToast('+1 hour ✓', 'success')">+1 Hour</button>
+                    <button class="btn btn-sm btn-warning" onclick="demoToast('Ending day… ✓', 'success')">End Day</button>
                   </div>
                   <div class="admin-cmd-row">
                     <span class="admin-cmd-label">Set Day</span>
@@ -915,11 +905,6 @@
                     <button class="btn btn-sm btn-primary" onclick="demoToast('Year updated ✓', 'success')">Set</button>
                   </div>
                   <div class="admin-cmd-row">
-                    <span class="admin-cmd-label">Crop Saver</span>
-                    <button class="btn btn-sm" id="demo-cropsaver-btn" onclick="demoToggleCropSaver()">Enabled</button>
-                    <span style="font-size:12px;color:var(--text-muted);margin-left:4px"></span>
-                  </div>
-                  <div class="admin-cmd-row">
                     <span class="admin-cmd-label">Pause the Game</span>
                     <button class="btn btn-sm" id="demo-pause-btn" onclick="demoTogglePause()">Pause</button>
                     <span id="demo-pause-state" style="font-size:12px;color:var(--text-muted);margin-left:4px"></span>
@@ -932,38 +917,165 @@
                     </div>
                     <input type="text" class="form-input" placeholder="Chat message on toggle (optional)" style="max-width:340px;width:100%">
                   </div>
+                  <div class="admin-cmd-row" style="flex-direction:column;align-items:flex-start;gap:6px;border-bottom:none">
+                    <span class="admin-cmd-label" style="margin:0">Clear</span>
+                    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                      <select class="form-input" style="width:auto"><option>Farm</option><option>Farm House</option><option>Greenhouse</option><option>Town</option><option>Beach</option><option>Forest</option><option>Desert</option></select>
+                      <select class="form-input" style="width:auto"><option>Debris</option><option>Crops</option><option>Grass</option><option>Trees</option><option>Fruit Trees</option><option>Furniture</option><option>Removable</option><option>Everything</option></select>
+                      <button class="btn btn-sm btn-primary" onclick="demoToast('Area cleared ✓', 'success')">Clear</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </details>
+            <details class="card admin-cred-details">
+              <summary>Farm Controls</summary>
+              <div style="padding-top:10px">
+                <p style="font-size:13px;color:var(--text-secondary);margin:0 0 10px">Farm-level commands sent directly to the running game via SMAPI.</p>
+                <div style="display:flex;flex-direction:column;gap:0">
+                  <div class="admin-cmd-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+                    <span class="admin-cmd-label" style="margin:0">Water/Grow Location</span>
+                    <select class="form-input" style="width:auto">
+                      <option>Farm</option>
+                      <option>Greenhouse</option>
+                      <option>Ginger Island Farm</option>
+                      <option>Island North</option>
+                    </select>
+                  </div>
+                  <div class="admin-cmd-row">
+                    <span class="admin-cmd-label">Water Crops</span>
+                    <button class="btn btn-sm btn-primary" onclick="demoToast('All crops watered ✓', 'success')">Water All</button>
+                  </div>
+                  <div class="admin-cmd-row" style="align-items:center;gap:6px">
+                    <span class="admin-cmd-label">Grow</span>
+                    <select class="form-input" style="width:auto">
+                      <option>Crops</option>
+                      <option>Grass</option>
+                      <option>Wild Trees</option>
+                      <option>Fruit Trees</option>
+                    </select>
+                    <input type="number" class="form-input" placeholder="Days / times" min="1" style="width:120px">
+                    <button class="btn btn-sm btn-primary" onclick="demoToast('Grow command sent ✓', 'success')">Grow</button>
+                  </div>
+                  <div class="admin-cmd-row">
+                    <span class="admin-cmd-label">Crop Saver</span>
+                    <button class="btn btn-sm" id="demo-cropsaver-btn" onclick="demoToggleCropSaver()">Enabled</button>
+                    <span style="font-size:12px;color:var(--text-muted);margin-left:4px"></span>
+                  </div>
                   <div class="admin-cmd-row" style="flex-direction:column;align-items:flex-start;gap:6px">
                     <div style="display:flex;align-items:center;gap:6px">
                       <span class="admin-cmd-label" style="margin:0">Build Permissions</span>
                       <select class="form-input" style="width:170px"><option value="off">Host Only (off)</option><option value="owned">Own Buildings (owned)</option><option value="on">Everyone (on)</option></select>
                       <button class="btn btn-sm btn-primary" onclick="demoToast('Build permissions updated ✓', 'success')">Set</button>
                     </div>
-                    <div style="font-size:11px;color:var(--text-muted)">Set to <em>owned</em> or <em>on</em> to allow players to use <code>move_cabin [types]</code></div>
-                    <div style="font-size:11px;color:var(--text-muted);display:flex;align-items:center;gap:6px">
-                      <span>types =</span>
-                      <select class="form-input" style="width:160px;font-size:11px;padding:2px 6px;height:auto">
-                        <option value="">— select type —</option>
-                        <option>stone — Stone Cabin</option><option>plank — Plank Cabin</option><option>log — Log Cabin</option>
-                        <option>neighbor — Neighbor Cabin</option><option>rustic — Rustic Cabin</option>
-                        <option>beach — Beach Cabin</option><option>trailer — Trailer Cabin</option>
-                      </select>
-                    </div>
+                    <div style="font-size:13px;color:var(--text-muted)">Controls whether farmhands can place and move buildings on the farm.</div>
                   </div>
                   <div class="admin-cmd-row" style="flex-direction:column;align-items:flex-start;gap:6px">
-                    <span class="admin-cmd-label" style="margin:0">Upgrade Cabin</span>
+                    <span class="admin-cmd-label" style="margin:0">Upgrade House</span>
                     <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
-                      <select class="form-input" style="flex:1;min-width:150px"><option value="">— Select player —</option><option>CoolFarmer</option><option>SproutKing</option></select>
-                      <select class="form-input" style="flex:1;min-width:130px"><option value="">— level —</option><option value="1">Level 1 (Room)</option><option value="2">Level 2 (Kitchen)</option><option value="3">Level 3 (Basement)</option></select>
-                      <button class="btn btn-sm btn-primary" onclick="demoToast('Cabin upgraded — player will be kicked briefly ✓', 'success')">Upgrade</button>
+                      <select class="form-input" style="flex:1;min-width:130px">
+                        <option value="1">Level 1 (Room)</option>
+                        <option value="2">Level 2 (Kitchen)</option>
+                        <option value="3">Level 3 (Basement)</option>
+                      </select>
+                      <button class="btn btn-sm btn-primary" onclick="demoToast('House upgraded ✓', 'success')">Upgrade</button>
                     </div>
                   </div>
-                  <div class="admin-cmd-row" style="flex-direction:column;align-items:flex-start;gap:6px;border-bottom:none">
-                    <span class="admin-cmd-label" style="margin:0">Clear</span>
-                    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
-                      <select class="form-input" style="width:auto"><option>Farm</option><option>FarmHouse</option><option>Greenhouse</option><option>Town</option><option>Beach</option><option>Forest</option><option>Desert</option></select>
-                      <select class="form-input" style="width:auto"><option>Debris</option><option>Crops</option><option>Grass</option><option>Trees</option><option>Fruit Trees</option><option>Furniture</option><option>Removable</option><option>Everything</option></select>
-                      <button class="btn btn-sm btn-primary" onclick="demoToast('Area cleared ✓', 'success')">Clear</button>
+                  <div class="admin-cmd-row" style="border-bottom:none">
+                    <div>
+                      <span class="admin-cmd-label">Auto-Sync House Level</span>
+                      <div style="font-size:12px;color:var(--text-muted);margin-top:2px">Automatically upgrade the host farmhouse to match the highest farmhand cabin level.</div>
                     </div>
+                    <label class="toggle">
+                      <input type="checkbox" onchange="demoToast('Auto-sync ' + (this.checked ? 'enabled' : 'disabled') + ' ✓', 'success')">
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+            </details>
+            <div class="card">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+                <h3 style="margin:0">Community Center</h3>
+                <span style="margin-left:auto;display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--text-muted);font-weight:400">
+                  <span>35% · 2/6 rooms</span>
+                  <span class="cc-room-bar" style="width:80px"><span class="cc-room-fill" style="width:35%"></span></span>
+                </span>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:8px;font-size:13px">
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><span>Pantry</span><span style="color:#22c55e;font-weight:600">✓ Complete</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><span>Crafts Room</span><span style="color:#22c55e;font-weight:600">✓ Complete</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><span>Fish Tank</span><span style="color:var(--accent-warn);font-weight:600">3 / 5 bundles</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><span>Boiler Room</span><span style="color:var(--accent-warn);font-weight:600">2 / 3 bundles</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><span>Bulletin Board</span><span style="color:var(--text-secondary)">1 / 6 bundles</span></div>
+                <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:var(--bg-tertiary);border-radius:8px;border:1px solid var(--border)"><span>Vault</span><span style="color:var(--text-secondary)">0 / 4 bundles</span></div>
+              </div>
+            </div>
+            <details class="card admin-cred-details">
+              <summary>Community Controls</summary>
+              <div style="padding-top:10px">
+                <div style="display:flex;flex-direction:column;gap:0">
+                  <div class="admin-cmd-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+                    <span class="admin-cmd-label" style="margin:0">Complete Bundle</span>
+                    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                      <select class="form-input" style="width:auto">
+                        <optgroup label="Pantry">
+                          <option>Spring Crops</option><option>Summer Crops</option><option>Fall Crops</option>
+                          <option>Quality Crops</option><option>Animal Products</option><option>Artisan</option>
+                        </optgroup>
+                        <optgroup label="Crafts Room">
+                          <option>Spring Foraging</option><option>Summer Foraging</option><option>Fall Foraging</option>
+                          <option>Winter Foraging</option><option>Construction</option><option>Exotic Foraging</option>
+                        </optgroup>
+                        <optgroup label="Fish Tank">
+                          <option>River Fish</option><option>Lake Fish</option><option>Ocean Fish</option>
+                          <option>Night Fishing</option><option>Specialty Fish</option><option>Crab Pot</option>
+                        </optgroup>
+                        <optgroup label="Boiler Room">
+                          <option>Blacksmith</option><option>Geologist</option><option>Adventurer's</option>
+                        </optgroup>
+                        <optgroup label="Bulletin Board">
+                          <option>Chef's</option><option>Dye</option><option>Field Research</option>
+                          <option>Fodder</option><option>Enchanter's</option>
+                        </optgroup>
+                        <optgroup label="Vault">
+                          <option>2,500g</option><option>5,000g</option><option>10,000g</option><option>25,000g</option>
+                        </optgroup>
+                      </select>
+                      <button class="btn btn-sm btn-primary" onclick="demoToast('Bundle completed ✓', 'success')">Complete</button>
+                    </div>
+                  </div>
+                  <div class="admin-cmd-row" style="flex-direction:column;align-items:flex-start;gap:4px">
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <span class="admin-cmd-label" style="margin:0">Complete CC</span>
+                      <button class="btn btn-sm btn-warning" onclick="demoToast('Community Center completed ✓', 'success')">Complete</button>
+                    </div>
+                    <div style="font-size:11px;color:var(--text-muted)">Marks all bundles complete and restores all Community Center areas. Opens the backroom at Willy's, unlocking Ginger Island.</div>
+                  </div>
+                  <div class="admin-cmd-row" style="flex-direction:column;align-items:flex-start;gap:4px">
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <span class="admin-cmd-label" style="margin:0">Complete Joja</span>
+                      <button class="btn btn-sm btn-primary" onclick="demoToast('Joja route completed ✓', 'success')">Complete</button>
+                    </div>
+                    <div style="font-size:11px;color:var(--text-muted)">Adds all Joja membership flags and completes all Community Development purchases. Opens the backroom at Willy's, unlocking Ginger Island.</div>
+                  </div>
+                  <div class="admin-cmd-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+                    <span class="admin-cmd-label" style="margin:0">Reset &amp; Regenerate Bundles</span>
+                    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                      <select class="form-input" style="width:auto">
+                        <option>Default</option>
+                        <option>Remixed</option>
+                      </select>
+                      <button class="btn btn-sm btn-warning" onclick="demoToast('Bundles reset and regenerated ✓', 'success')">Reset &amp; Regenerate</button>
+                    </div>
+                    <div style="font-size:11px;color:var(--text-muted)">Wipes all bundle progress and rebuilds requirements. Default uses the original bundles; Remixed uses the save's seed for randomised requirements.</div>
+                  </div>
+                  <div class="admin-cmd-row" style="flex-direction:column;align-items:flex-start;gap:4px;border-bottom:none">
+                    <div style="display:flex;align-items:center;gap:8px">
+                      <span class="admin-cmd-label" style="margin:0">Shuffle Bundles</span>
+                      <button class="btn btn-sm btn-primary" onclick="demoToast('Bundles shuffled ✓', 'success')">Shuffle</button>
+                    </div>
+                    <div style="font-size:11px;color:var(--text-muted)">Remixed mode only — regenerates bundles with a random seed (ignores save seed).</div>
                   </div>
                 </div>
               </div>
@@ -1013,6 +1125,69 @@
                 </div>
               </div>
             </div>
+            <details class="card admin-cred-details">
+              <summary>Player Controls</summary>
+              <div style="padding-top:10px">
+                <div style="display:flex;flex-direction:column;gap:0">
+                  <div class="admin-cmd-row" style="flex-direction:column;align-items:flex-start;gap:6px">
+                    <span class="admin-cmd-label" style="margin:0">Give Item</span>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                      <select class="form-input" style="width:auto">
+                        <option value="">Select player…</option>
+                        <option>CoolFarmer</option>
+                        <option>SproutKing</option>
+                      </select>
+                      <select class="form-input" style="width:auto">
+                        <option value="">Category…</option>
+                        <option>Books</option>
+                        <option>Mining &amp; Gems</option>
+                        <option>Farming</option>
+                        <option>Seeds &amp; Saplings</option>
+                        <option>Fishing</option>
+                        <option>Food &amp; Cooking</option>
+                        <option>Rings</option>
+                        <option>Artifacts &amp; Fossils</option>
+                        <option>Misc / Special</option>
+                      </select>
+                      <select class="form-input" style="width:auto">
+                        <option value="">Item…</option>
+                      </select>
+                      <input type="number" class="form-input" style="width:65px" value="1" min="1" max="999" placeholder="Qty">
+                      <select class="form-input" style="width:auto">
+                        <option value="0">Normal</option>
+                        <option value="1">Silver</option>
+                        <option value="2">Gold</option>
+                        <option value="4">Iridium</option>
+                      </select>
+                      <button class="btn btn-sm btn-primary" onclick="demoToast('Item placed in chest ✓', 'success')">Give</button>
+                    </div>
+                    <div style="font-size:11px;color:var(--text-muted)">Items placed in a chest in the player's cabin. Online players get a chat notification.</div>
+                  </div>
+                  <div class="admin-cmd-row" style="flex-direction:column;align-items:flex-start;gap:6px;margin-top:10px">
+                    <span class="admin-cmd-label" style="margin:0">Upgrade Cabin</span>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+                      <select class="form-input" style="flex:1;min-width:150px"><option value="">— Select player —</option><option>CoolFarmer</option><option>SproutKing</option></select>
+                      <select class="form-input" style="flex:1;min-width:130px"><option value="">— level —</option><option value="1">Level 1 (Room)</option><option value="2">Level 2 (Kitchen)</option><option value="3">Level 3 (Basement)</option></select>
+                      <button class="btn btn-sm btn-primary" onclick="demoToast('Cabin upgraded — player will be kicked briefly ✓', 'success')">Upgrade</button>
+                    </div>
+                    <div style="font-size:11px;color:var(--text-muted)">Player must be outside their cabin. They will be kicked and need to reconnect to see the changes.</div>
+                  </div>
+                  <div class="admin-cmd-row" style="flex-direction:column;align-items:flex-start;gap:6px;margin-top:10px;border-bottom:none">
+                    <span class="admin-cmd-label" style="margin:0">Move Cabin</span>
+                    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+                      <select class="form-input" style="width:auto"><option value="">Select player…</option><option>CoolFarmer</option><option>SproutKing</option></select>
+                      <select class="form-input" style="width:auto">
+                        <option value="">Keep current skin</option>
+                        <option>Stone Cabin</option><option>Plank Cabin</option><option>Log Cabin</option>
+                        <option>Neighbor Cabin</option><option>Rustic Cabin</option><option>Beach Cabin</option><option>Trailer Cabin</option>
+                      </select>
+                      <button class="btn btn-sm btn-primary" onclick="demoToast('Cabin placed at player position ✓', 'success')">Place</button>
+                    </div>
+                    <div style="font-size:11px;color:var(--text-muted)">Player must be standing on the Farm. Cabin moves to their current position. They will be kicked and need to reconnect.</div>
+                  </div>
+                </div>
+              </div>
+            </details>
             <div class="card">
               <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px">
                 <div>
@@ -1272,6 +1447,7 @@
               <div class="console-divider">
                 <div class="log-filters">
                   <button class="log-filter demo-log-filter active" type="button" onclick="demoConsoleFilter('Game', this)">Game</button>
+                  <button class="log-filter demo-log-filter" type="button" onclick="demoConsoleFilter('Mods', this)">Mods</button>
                   <button class="log-filter demo-log-filter" type="button" onclick="demoConsoleFilter('Errors', this)">Errors</button>
                   <button class="log-filter demo-log-filter" type="button" onclick="demoConsoleFilter('SMAPI', this)">SMAPI</button>
                   <button class="log-filter demo-log-filter" type="button" onclick="demoConsoleFilter('All', this)">All</button>
